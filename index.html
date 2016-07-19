@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Line chart</title>
+<link rel="stylesheet" type="text/css" href="style/style.css"/>
+</head>
+<body>
+<script type="text/javascript" src="js/multivariateDV.js"></script>
+
+<div id="chart"></div>
+<script type="text/javascript">
+   var xhttp = new XMLHttpRequest(),data;
+   xhttp.onreadystatechange = function() {
+      if (xhttp.readyState == 4 && xhttp.status == 200) {
+         data= JSON.parse(xhttp.responseText);
+         render(data,'chart');
+      }
+   };
+   xhttp.open("GET", "rsc/dataJson.json", true);
+   xhttp.send();
+</script>
+</body>
+</html>
