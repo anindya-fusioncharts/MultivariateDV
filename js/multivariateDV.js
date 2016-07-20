@@ -11,10 +11,7 @@
 		var user_input_raw=user_input;
 		
 		
-		var point={};
-		var pointStr='';
-		var yDiff,xDiff;
-		var retriveMonth;
+
 		
 		if(typeof user_input=="string"){
 			user_input=JSON.parse(user_input);
@@ -26,28 +23,24 @@
 		
 		drawChartHeading(selector);
 		linecharts(selector);
-		//columncharts(selector);
+		columncharts(selector);
 	}
 
 	function linecharts(selector){
+		var point={};
+		var pointStr='';
+		var yDiff,xDiff;
+		var retriveMonth;
+
 		for(var i=0; i<ob.chart.yMap.length; i++){
 
-			chartDraw = new svgDraw(selector,ob.chart.width,ob.chart.height,"chartSpace");						
+			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
 			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i]);			
 			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);	
 			pointStr='';
-			DataSet[i]=[];
+
 			xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
-			for(var j=0,k=0;j<ob.data.length;j++){
-				
-				if (ob.data[j][ob.chart.yMap[i]]!= undefined && ob.data[j][ob.chart.xMap] != undefined){
-					DataSet[i][k]=[];
-					DataSet[i][k][0]=new Date(ob.data[j][ob.chart.xMap].toString()).getTime();										
-					DataSet[i][k][1]=ob.data[j][ob.chart.yMap[i]];
-					k++;									
-				}											
-			}
-			DataSet[i]=sortByDate(DataSet[i]);
+
 			for(k=0;k<DataSet[i].length;k++){
 
 				yDiff=ob.yAxisTicks[i][ob.yAxisTicks[i].length-1]-ob.yAxisTicks[i][0];					
@@ -63,22 +56,70 @@
 					DataSet[i][k][3]=point.y;
 					chartDraw.drawCircle(point,"plotPoint",DataSet[i][k][1]);									
 			}
-			crossHairLine[i]= chartDraw.drawCrossHair(ob.yAxisTicks[i],"crossHair","rect");						
+			crossHairLine[i]= drawCrossHair(chartDraw,ob.yAxisTicks[i],"crossHair","rect");						
 		}
 		drawXAxisTitle(selector);
-
 	}
 
 	function columncharts(selector){
-		for(var i=0; i<ob.chart.yMap.length; i++){
-			chartDraw = new svgDraw(selector,ob.chart.width,ob.chart.height,"chartSpace");						
+		var columnMinDiff=0,columnDiff;
+		var yDiff,xDiff;
+		var x;
+		var point, point1;
+		var height,width;
+		var pointRightLimit;	
+		var pointLowerLeftLimit;
+
+		for(var i=0,count=0; i<ob.chart.yMap.length; i++){
+			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
 			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i]);			
-			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);	
+			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);
+			
+			pointLowerLeftLimit=chartDraw.coordinate(0,0);
+
+			pointRightLimit=chartDraw.coordinate(chartDraw.xShift(ob.xAxisTicks[ob.xAxisTicks.length-1].getTime(),ob.xAxisTicks[0].getTime() ,xDiff), 0);
+			for(k=1;k<DataSet[i].length;k++){
+				if(count<2){
+					columnMinDiff=Math.abs(columnMinDiff-DataSet[i][k-1][0]);
+					count++;
+				} else{
+					columnDiff=Math.abs(DataSet[i][k-1][0]-DataSet[i][k][0])
+					if(columnMinDiff>columnDiff){
+						columnMinDiff=columnDiff;	
+					}
+				}
+				
+				xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();							
+				
+				for(k=0;k<DataSet[i].length;k++){
+					yDiff=ob.yAxisTicks[i][ob.yAxisTicks[i].length-1]-ob.yAxisTicks[i][0];					
+					point=chartDraw.coordinate(chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff), chartDraw.yShift(DataSet[i][k][1],ob.yAxisTicks[i][0],yDiff));		
+
+					width=4;
+					x=point.x-width/2;
+					if(x<pointLowerLeftLimit.x){
+						x=x+Math.abs(x-pointLowerLeftLimit.x);
+					}
+					if((x+width)>pointRightLimit.x)
+						x=x-Math.abs(x+width-pointRightLimit.x);
+
+					height=Math.abs(point.y-pointLowerLeftLimit.y);	
+					if(height==0){
+						point.y-=2;
+						height=2;
+					}
+
+			//		width=Math.floor(((columnMinDiff/xDiff)*chartDraw.width)/3)*2;
+//console.log(width);				
+					column=chartDraw.drawRect(x,point.y,"column",height,width,"stroke:#black;fill:blue;");					
+				}
+
+			}
 		}
 	}
 	
 	function drawXAxisTitle(selector){
-		var xAxisTitle=new svgDraw(selector,ob.chart.width,40,"xAxisTitle");
+		var xAxisTitle=new Svg(selector,ob.chart.width,40,"xAxisTitle");
 		point={
 			x:xAxisTitle.width- Math.floor(xAxisTitle.width/2 -xAxisTitle.marginX),
 			y:15
@@ -89,7 +130,7 @@
 	}
 
 	function drawChartHeading(selector) {
-		var chartHeadings=new svgDraw(selector,window.innerWidth-200,50,"Heading");
+		var chartHeadings=new Svg(selector,window.innerWidth-200,50,"Heading");
 
 		point={
 			x: chartHeadings.width- Math.floor(chartHeadings.width/2 -chartHeadings.marginX),
@@ -147,194 +188,6 @@
 	    return -1*(currentIndex+1);
 	}
 
-	function disPatchMouserollOver(event,left){
-		var crossHairArray=document.getElementsByClassName("crossHair");	
-		CustomMouseRollOver.detail.x=Math.ceil(event.clientX-left);
-		for(var i=0; i<crossHairArray.length; i++){
-			if(crossHairArray[i]!=event.target)
-				crossHairArray[i].dispatchEvent(CustomMouseRollOver);
-		}
-	}
-
-	function syncCrossHair(e){
-		var adjustValue=0;
-		var fixedDecimal;
-		var index1,index2,slop,xRatio,sX1,sx2,sY1,sY2,cValue,yValue;
-		var top,topLimit,bottomLimit,left,leftLimit,rightLimit;
-		var x;	
-		var keyIndex;
-		var divTooltips=document.getElementsByClassName("tooltips");
-		var chartAreaRect=document.getElementsByClassName("crossHair");
-		var crossHair=document.getElementsByClassName("crossHairLine");
-
-		var tooltip=document.getElementsByClassName("tooltip");
-		var tooltipText=document.getElementsByClassName("tooltipText");
-		var x1,y1,y2,rectX,rectWidth;
-		var textLength;
-		var padding;
-		var tooltipHeight, tooltipWidth;
-		var pointX,pointY;
-		var parentOffset;
-		var rect;
-		padding=10;
-		x = e.detail.x+adjustValue;
-		tooltipHeight=25;
-		rect=document.getElementsByClassName("crossHair");
-//console.log(x);		
-		for (var i=0; i<crossHair.length; i++){	
-			crossHair[i].setAttribute("visibility","visible");	
-			tooltip[i].setAttribute("visibility","hidden");
-			tooltipText[i].setAttribute("visibility","hidden");
-
-			rectX=parseInt(chartAreaRect[i].getAttribute("x"));
-
-			crossHair[i].setAttribute("x1",(x+ rectX));
-			crossHair[i].setAttribute("x2",(x+rectX));
-
-			x1=parseInt(crossHair[i].getAttribute("x1"));
-			y1=parseInt(crossHair[i].getAttribute("y1"));
-			y2=parseInt(crossHair[i].getAttribute("y2"));
-			
-			rectWidth= parseInt(chartAreaRect[i].getAttribute("width"));
-			leftLimit=rectX;
-			rightLimit=rectX+rectWidth;
-			topLimit=y1;
-			bottomLimit=y2;
-
-			keyIndex=bSearch(DataSet[i],x1);
-
-			if(keyIndex>=0){
-
-
-				left=DataSet[i][keyIndex][2];
-				top=DataSet[i][keyIndex][3];
-				
-
-				textLength=DataSet[i][keyIndex][1].toString().length;
-
-				tooltipWidth=textLength*padding+2*padding;
-
-				tooltip[i].setAttribute("width",tooltipWidth.toString());
-				tooltip[i].setAttribute("height",tooltipHeight);
-				tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString();
-
-				pointX=left+5;
-				pointY=top-5;					
-				if((rightLimit -25) <(left+tooltipWidth)){
-
-					pointX=left-tooltipWidth-10;
-				}
-
-				if((top+tooltipHeight+5)>(bottomLimit)){
-					pointY=top+tooltipHeight;
-					while((pointY+tooltipHeight+5)>=(bottomLimit)){
-						pointY--;					
-					}											
-				}
-
-				if((top)< (topLimit +5)){
-					pointY=top;
-					while(pointY<=topLimit+15){					
-						pointY++;
-					}
-				}				
-
-
-				tooltip[i].setAttribute("x",pointX);
-				tooltipText[i].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
-
-				tooltip[i].setAttribute("y",pointY-10);
-				tooltipText[i].setAttribute("y",(pointY+7));
-
-				tooltip[i].setAttribute("visibility","visible");
-				tooltipText[i].setAttribute("visibility","visible");
-				
-			} else{				
-				keyIndex= Math.abs(keyIndex) -1;
-
-				if(x1 < DataSet[i][DataSet[i].length-1][2] && x1 > DataSet[i][0][2]) {
-					if(x1 > DataSet[i][keyIndex][2]) {
-						index1=keyIndex;
-						index2=keyIndex+1;
-					} else {
-						index1=keyIndex-1;
-						index2=keyIndex;
-					}
-					sX1=DataSet[i][index1][2];
-					sY1=DataSet[i][index1][3];
-					sX2=DataSet[i][index2][2];
-					sY2=DataSet[i][index2][3];
-
-					slop=((sY2-sY1)/(sX2-sX1)).toFixed(3);
-					cValue=(sY2- slop*sX2);
-					yValue=Math.abs((slop* x1) + cValue);					
-					xRatio=(DataSet[i][index2][1]-DataSet[i][index1][1])/Math.abs(sX1-sX2);
-					if(DataSet[i][index2][1]%1 !=0)
-						fixedDecimal=(DataSet[i][index2][1]%1).toString().length;
-					else
-						fixedDecimal=0;
-					tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
-
-					top=Math.floor(yValue);
-					left=x1;
-					textLength=tooltipText[i].innerHTML.toString().length;
-				
-
-					tooltipWidth=textLength*padding+2*padding;
-
-					tooltip[i].setAttribute("width",tooltipWidth.toString());
-					tooltip[i].setAttribute("height",tooltipHeight);
-
-					pointX=left+5;
-
-					pointY=top-5;			
-
-					if((rightLimit -25) <(left+tooltipWidth)){
-
-						pointX=left-tooltipWidth-10;
-					}
-
-					if((top+tooltipHeight+5)>(bottomLimit)){
-						pointY=top+tooltipHeight;
-						while((pointY+tooltipHeight+5)>=(bottomLimit)){
-							pointY--;					
-						}											
-					}
-
-					if((top)< (topLimit +5)){
-						pointY=top;
-						while(pointY<=topLimit+15){					
-							pointY++;
-						}
-					}				
-
-					tooltip[i].setAttribute("x",pointX);
-					tooltipText[i].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
-
-					tooltip[i].setAttribute("y",(pointY-10));
-					tooltipText[i].setAttribute("y",(pointY+7));
-
-					tooltip[i].setAttribute("visibility","visible");
-					tooltipText[i].setAttribute("visibility","visible");
-
-				} else {
-					tooltip[i].setAttribute("visibility","hidden");
-					tooltipText[i].setAttribute("visibility","hidden");
-				}
-			}
-		}
-	}
-
-	function hideCrossHair(e){
-		var element=document.getElementsByClassName("crossHairLine");
-		var tooltip=document.getElementsByClassName("tooltip");
-		var tooltipText=document.getElementsByClassName("tooltipText");		
-		for (var i=0; i<element.length; i++){	
-			element[i].setAttribute("visibility","hidden");
-			tooltip[i].setAttribute("visibility","hidden");
-			tooltipText[i].setAttribute("visibility","hidden");
-		}
-	}
 
 //------------------------
 
@@ -376,6 +229,21 @@
 			}	
 		}
 		ob.chart.yMap=uniqueKeys;	
+
+
+		for(var i=0; i<ob.chart.yMap.length; i++){
+			DataSet[i]=[];
+			for(var j=0,k=0;j<ob.data.length;j++){				
+				if (ob.data[j][ob.chart.yMap[i]]!= undefined && ob.data[j][ob.chart.xMap] != undefined){
+					DataSet[i][k]=[];
+					DataSet[i][k][0]=new Date(ob.data[j][ob.chart.xMap].toString()).getTime();										
+					DataSet[i][k][1]=ob.data[j][ob.chart.yMap[i]];
+					k++;									
+				}											
+			}
+			DataSet[i]=sortByDate(DataSet[i]);
+		}
+
 	}
 
 	function xRangeTicks(){
@@ -608,7 +476,7 @@
 	}
 
 
-	function svgDraw(selector,width,height,classIn){
+	function Svg(selector,width,height,classIn){
 		var percntWidth;
 
 		this.marginX = ob.chart.marginX;	
@@ -650,14 +518,14 @@
 	}
 
 
-	svgDraw.prototype.coordinate=function(x,y){
+	Svg.prototype.coordinate=function(x,y){
 		return {
 			x: x + this.marginX ,
 			y: this.height - (y+this.marginY)	
 		};
 	}
 
-	svgDraw.prototype.drawLine=function(x1,y1,x2,y2,classIn){
+	Svg.prototype.drawLine=function(x1,y1,x2,y2,classIn){
 		var pos1 = this.coordinate(x1, y1);	
 		var pos2= this.coordinate(x2, y2);	
 		
@@ -672,7 +540,7 @@
 		return line;	
 	}
 
-	svgDraw.prototype.drawXaxis= function(noChart,tickList){
+	Svg.prototype.drawXaxis= function(noChart,tickList){
 		var x1= -(this.marginX-this.paddingX1)-1;
 		var y1=0;
 		var x2=this.width;
@@ -708,7 +576,7 @@
 			}			
 	}	
 
-	svgDraw.prototype.drawYaxis= function(tickList,yAxisTitle){
+	Svg.prototype.drawYaxis= function(tickList,yAxisTitle){
 		
 		var len,diff,plotFactor;
 		var y1;
@@ -797,24 +665,25 @@
 
 	}
 
-	svgDraw.prototype.xShift=function(item,min,diff){
+	Svg.prototype.xShift=function(item,min,diff){
 		return Math.floor(((item-min)/diff)*(this.width));
 	}
 
-	svgDraw.prototype.yShift=function(item,min,diff){
+	Svg.prototype.yShift=function(item,min,diff){
 		return Math.floor(((item-min)/diff)*(this.height-this.marginY-7));
 	}
 
 
-	svgDraw.prototype.drawPoly=function(points,classIn){
+	Svg.prototype.drawPoly=function(points,classIn){
 
 		var polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");			
 		polyline.setAttribute("points",points);		
 		polyline.setAttribute("class",classIn);
 		this.svg.appendChild(polyline);
+		return polyline;
 	}
 
-	svgDraw.prototype.drawCircle= function(point,classIn,tooltipValue){
+	Svg.prototype.drawCircle= function(point,classIn,tooltipValue){
 		var circle=document.createElementNS("http://www.w3.org/2000/svg", "circle");	
 		circle.setAttribute("cx",point.x);
 		circle.setAttribute("cy",point.y);
@@ -823,9 +692,10 @@
 		circle.setAttribute("class",classIn);
 		circle.style.zIndex=1000;
 		this.svg.appendChild(circle);	
+		return circle;
 	}
 
-	svgDraw.prototype.drawText=function(point,dy,textIn,classIn,angle){
+	Svg.prototype.drawText=function(point,dy,textIn,classIn,angle){
 		var text=document.createElementNS("http://www.w3.org/2000/svg", "text");	
 
 		text.setAttribute("x",(point.x).toString());
@@ -839,65 +709,249 @@
 
 		text.setAttribute("class",classIn);	
 		this.svg.appendChild(text);
+		return text;
 	}
 
-	svgDraw.prototype.drawCrossHair=function(tickList,classIn,rectId){		
-		var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
-		var rectLeft;
+	function drawCrossHair(svgOb,tickList,classIn,rectId){		
+		
+
+		var rectLeft,height;
 		var diff=tickList[tickList.length-2]-tickList[0];
-		var x1=-(this.marginX-this.paddingX1);
-		var y1=this.yShift(tickList[tickList.length-2],tickList[0],diff);
+		var x1=-(svgOb.marginX-svgOb.paddingX1);
+		var y1=svgOb.yShift(tickList[tickList.length-2],tickList[0],diff);
 		var x2=x1;
-		var y2=this.yShift(tickList[0],tickList[0],diff);
-		var point=this.coordinate(-(this.marginX-this.paddingX1),this.yShift(tickList[tickList.length-2],tickList[0],diff));
-		rect.setAttribute("x",point.x+5);
-		rect.setAttribute("y",point.y-15);
+		var y2=svgOb.yShift(tickList[0],tickList[0],diff);
+		var point=svgOb.coordinate(-(svgOb.marginX-svgOb.paddingX1),svgOb.yShift(tickList[tickList.length-2],tickList[0],diff));
+		
+		var point1=svgOb.coordinate(-(svgOb.marginX-svgOb.paddingX1),svgOb.yShift(tickList[0],tickList[0],diff));
+		height= point1.y-point.y+25
 
-		var point1=this.coordinate(-(this.marginX-this.paddingX1),this.yShift(tickList[0],tickList[0],diff));
-
-		rect.setAttribute("height",point1.y-point.y+25);
-		rect.setAttribute("width",this.width);
-		rect.setAttribute("style","stroke:#black; fill:transparent");
-		rect.setAttribute("class",classIn);
-		rect.setAttribute("id",rectId);
-		this.svg.appendChild(rect);
-
-		var crossHair=this.drawLine(x1,y1,x2,y2,"crossHairLine");
+		var rect=svgOb.drawRect(point.x+5,point.y-15,classIn,height,svgOb.width,"stroke:#black; fill:transparent");
+		var crossHair=svgOb.drawLine(x1,y1,x2,y2,"crossHairLine");
 		crossHair.setAttribute("visibility","hidden");	
+		var tooltip=svgOb.drawRect(point.x+5,point.y,"tooltip",10,0,"fill:#cddc39");		
+		var tooltipText=svgOb.drawText(point,"","","tooltipText",0);
 
-		var tooltip=document.createElementNS("http://www.w3.org/2000/svg","rect");
-		tooltip.setAttribute("x",point.x+5);
-		tooltip.setAttribute("y",point.y);
-		tooltip.setAttribute("height",10);
-		tooltip.setAttribute("width",0);
-		tooltip.setAttribute("style","fill:#cddc39");
-		tooltip.setAttribute("class","tooltip");
-		this.svg.appendChild(tooltip);
-
-		var tooltipText=document.createElementNS("http://www.w3.org/2000/svg", "text");	
-		tooltipText.setAttribute("x",(point.x).toString());
-		tooltipText.setAttribute("y",(point.y).toString());
-		tooltipText.innerHTML="";	
 		tooltipText.setAttribute("style",'fill: #000');		
 		tooltipText.setAttribute("class","tooltipText");	
-		this.svg.appendChild(tooltipText);
 
-		this.svg.insertBefore(tooltip,tooltipText);
-console.log();
+		svgOb.svg.insertBefore(tooltip,tooltipText);
+
 		rectLeft=rect.getBoundingClientRect().left;	
+
 		rect.addEventListener("mousemove",function(event){disPatchMouserollOver(event,rectLeft)},false);
 		rect.addEventListener("mouserollover",syncCrossHair,false);
 		rect.addEventListener("mouseout",hideCrossHair,false);		
 	}
-
-	svgDraw.prototype.drawPolygon=function(points,classIn){
+	Svg.prototype.drawRect=function(x,y,classIn,h,w,style){
+		var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
+		style=style||"";
+		rect.setAttribute("x",x);
+		rect.setAttribute("y",y);
+		rect.setAttribute("height",h);
+		rect.setAttribute("width",w);
+		rect.setAttribute("style",style);
+		rect.setAttribute("class",classIn);
+		this.svg.appendChild(rect);
+		return rect;
+	}
+	Svg.prototype.drawPolygon=function(points,classIn){
 		var polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");			
 		polygon.setAttribute("points",points);		
 		polygon.setAttribute("class",classIn);
 		this.svg.appendChild(polygon);
 	}
 
+
 //-----custom event
 	var CustomMouseRollOver=new CustomEvent("mouserollover",{"detail":{x:"",left:""}});
+//-----event handling 
+	function disPatchMouserollOver(event,left){
+		var crossHairArray=document.getElementsByClassName("crossHair");	
+		CustomMouseRollOver.detail.x=Math.ceil(event.clientX-left);
+		for(var i=0; i<crossHairArray.length; i++){
+			if(crossHairArray[i]!=event.target)
+				crossHairArray[i].dispatchEvent(CustomMouseRollOver);
+		}
+	}
 
+	function syncCrossHair(e){
+		var adjustValue=0;
+		var fixedDecimal;
+		var index1,index2,slop,xRatio,sX1,sx2,sY1,sY2,cValue,yValue;
+		var top,topLimit,bottomLimit,left,leftLimit,rightLimit;
+		var x;	
+		var keyIndex;
+		var divTooltips=document.getElementsByClassName("tooltips");
+		var chartAreaRect=document.getElementsByClassName("crossHair");
+		var crossHair=document.getElementsByClassName("crossHairLine");
+
+		var tooltip=document.getElementsByClassName("tooltip");
+		var tooltipText=document.getElementsByClassName("tooltipText");
+		var x1,y1,y2,rectX,rectWidth;
+		var textLength;
+		var padding;
+		var tooltipHeight, tooltipWidth;
+		var pointX,pointY;
+		var parentOffset;
+		var rect;
+		padding=10;
+		x = e.detail.x+adjustValue;
+		tooltipHeight=25;
+		rect=document.getElementsByClassName("crossHair");
+//console.log(x);		
+		for (var i=0; i<crossHair.length; i++){	
+			crossHair[i].setAttribute("visibility","visible");	
+			tooltip[i].setAttribute("visibility","hidden");
+			tooltipText[i].setAttribute("visibility","hidden");
+
+			rectX=parseInt(chartAreaRect[i].getAttribute("x"));
+
+			crossHair[i].setAttribute("x1",(x+ rectX));
+			crossHair[i].setAttribute("x2",(x+rectX));
+
+			x1=parseInt(crossHair[i].getAttribute("x1"));
+			y1=parseInt(crossHair[i].getAttribute("y1"));
+			y2=parseInt(crossHair[i].getAttribute("y2"));
+			
+			rectWidth= parseInt(chartAreaRect[i].getAttribute("width"));
+			leftLimit=rectX;
+			rightLimit=rectX+rectWidth;
+			topLimit=y1;
+			bottomLimit=y2;
+
+			keyIndex=bSearch(DataSet[i],x1);
+
+			if(keyIndex>=0){
+
+
+				left=DataSet[i][keyIndex][2];
+				top=DataSet[i][keyIndex][3];
+				
+
+				textLength=DataSet[i][keyIndex][1].toString().length;
+
+				tooltipWidth=textLength*padding+2*padding;
+
+				tooltip[i].setAttribute("width",tooltipWidth.toString());
+				tooltip[i].setAttribute("height",tooltipHeight);
+				tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString();
+
+				pointX=left+5;
+				pointY=top-5;					
+				if((rightLimit -25) <(left+tooltipWidth)){
+
+					pointX=left-tooltipWidth-10;
+				}
+
+				if((top+tooltipHeight+5)>(bottomLimit)){
+					pointY=top+tooltipHeight;
+					while((pointY+tooltipHeight+5)>=(bottomLimit)){
+						pointY--;					
+					}											
+				}
+
+				if((top)< (topLimit +5)){
+					pointY=top;
+					while(pointY<=topLimit+15){					
+						pointY++;
+					}
+				}				
+
+
+				tooltip[i].setAttribute("x",pointX);
+				tooltipText[i].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
+
+				tooltip[i].setAttribute("y",pointY-10);
+				tooltipText[i].setAttribute("y",(pointY+7));
+
+				tooltip[i].setAttribute("visibility","visible");
+				tooltipText[i].setAttribute("visibility","visible");
+				
+			} else{				
+				keyIndex= Math.abs(keyIndex) -1;
+
+				if(x1 < DataSet[i][DataSet[i].length-1][2] && x1 > DataSet[i][0][2]) {
+					if(x1 > DataSet[i][keyIndex][2]) {
+						index1=keyIndex;
+						index2=keyIndex+1;
+					} else {
+						index1=keyIndex-1;
+						index2=keyIndex;
+					}
+					sX1=DataSet[i][index1][2];
+					sY1=DataSet[i][index1][3];
+					sX2=DataSet[i][index2][2];
+					sY2=DataSet[i][index2][3];
+
+					slop=((sY2-sY1)/(sX2-sX1)).toFixed(3);
+					cValue=(sY2- slop*sX2);
+					yValue=Math.abs((slop* x1) + cValue);					
+					xRatio=(DataSet[i][index2][1]-DataSet[i][index1][1])/Math.abs(sX1-sX2);
+					if(DataSet[i][index2][1]%1 !=0)
+						fixedDecimal=(DataSet[i][index2][1]%1).toString().length;
+					else
+						fixedDecimal=0;
+					tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
+
+					top=Math.floor(yValue);
+					left=x1;
+					textLength=tooltipText[i].innerHTML.toString().length;
+				
+
+					tooltipWidth=textLength*padding+2*padding;
+
+					tooltip[i].setAttribute("width",tooltipWidth.toString());
+					tooltip[i].setAttribute("height",tooltipHeight);
+
+					pointX=left+5;
+
+					pointY=top-5;			
+
+					if((rightLimit -25) <(left+tooltipWidth)){
+
+						pointX=left-tooltipWidth-10;
+					}
+
+					if((top+tooltipHeight+5)>(bottomLimit)){
+						pointY=top+tooltipHeight;
+						while((pointY+tooltipHeight+5)>=(bottomLimit)){
+							pointY--;					
+						}											
+					}
+
+					if((top)< (topLimit +5)){
+						pointY=top;
+						while(pointY<=topLimit+15){					
+							pointY++;
+						}
+					}				
+
+					tooltip[i].setAttribute("x",pointX);
+					tooltipText[i].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
+
+					tooltip[i].setAttribute("y",(pointY-10));
+					tooltipText[i].setAttribute("y",(pointY+7));
+
+					tooltip[i].setAttribute("visibility","visible");
+					tooltipText[i].setAttribute("visibility","visible");
+
+				} else {
+					tooltip[i].setAttribute("visibility","hidden");
+					tooltipText[i].setAttribute("visibility","hidden");
+				}
+			}
+		}
+	}
+
+	function hideCrossHair(e){
+		var element=document.getElementsByClassName("crossHairLine");
+		var tooltip=document.getElementsByClassName("tooltip");
+		var tooltipText=document.getElementsByClassName("tooltipText");		
+		for (var i=0; i<element.length; i++){	
+			element[i].setAttribute("visibility","hidden");
+			tooltip[i].setAttribute("visibility","hidden");
+			tooltipText[i].setAttribute("visibility","hidden");
+		}
+	}
 })();
