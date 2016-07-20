@@ -966,8 +966,7 @@
 				column=chartDraw.drawRect(x,point.y,"column",height,width,"");					
 				left=column.getAttribute("x");
 				top=column.getAttribute("y");
-				var 
-				column.addEventListener("mousemove",(function(top,left){function(event){disPatchMouseOver(event,left,top);}})(),false);
+				column.addEventListener("mousemove",function(event,left,top){return (function(){disPatchMouseOver(event,left,top);})}(event,left,top),false);
 
 				column.addEventListener("mouserollover",highlightColumn,false);
 				column.addEventListener("mouseout",unfocus,false);
