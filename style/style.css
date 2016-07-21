@@ -77,8 +77,8 @@
 
 }
 .yAxisTitle{
-	fill: #212121 !important;
-	text-anchor: end !important;
+	fill: #033057 !important;
+	text-anchor: middle !important;
 	font-size:20px;
 	font-family: "Helvetica Neue", Arial;
 	font-weight: bold;
@@ -118,5 +118,12 @@
 
 .column_Tooltip,.tooltip,.tooltipText,.column_tooltipText{
 	z-index:100;
+	shape-rendering:crispEdges;
+}
+
+.titles{
+	fill:#f5fafe !important;
+	stroke-width:1;
+	stroke:#212121;
 	shape-rendering:crispEdges;
 }

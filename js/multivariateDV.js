@@ -7,6 +7,7 @@
 	var chartDraw={};
 	var marginLeft= 0;
 	var column=[];
+	var noChartRow,chartCount=0;
 
 	window.CustomApi=function(selector){
 		this.dataMap=ob.chart.yMap;
@@ -33,9 +34,9 @@
 		DataSet=[];
 		retriveData();
 		if(ob.chart.type=="line"){
-			linecharts(this.selector,tickPosUp);
+			linecharts(this.selector,tickPosDown);
 		} else if(ob.chart.type=="column")
-			columncharts(this.selector,tickPosUp); 
+			columncharts(this.selector,tickPosDown); 
 	}
 
 	function sortMax(dataMapList,dataList){
@@ -87,14 +88,21 @@
 		chart_info(user_input);			
 		retriveData();
 
-		tickPosUp=tickspoistion();
+		tickPosDown=tickspoistion();
+		if(!tickPosDown){
+			ob.chart.marginY=75;
+			ob.chart.topMarginY=45;							
+		}else{
+			ob.chart.marginY=45;
+			ob.chart.topMarginY=75;					
+		}
 
 		drawChartHeading(selector);
 
 		if(ob.chart.type=="line")
-			linecharts(selector,tickPosUp);
+			linecharts(selector,tickPosDown);
 		if(ob.chart.type=="column")
-			columncharts(selector,tickPosUp); 
+			columncharts(selector,tickPosDown); 
 
 		window.customApiOb= new CustomApi(selector);
 	
@@ -110,7 +118,7 @@
 	}
 
 
-	function linecharts(selector,tickPosUp){
+	function linecharts(selector,tickPosDown){
 		var point={};
 		var pointStr='';
 		var yDiff,xDiff;
@@ -118,11 +126,11 @@
 
 		xRangeTicks();
 		yRangeTicks();	
-
+chartCount=0;
 		for(var i=0; i<ob.chart.yMap.length; i++){
-
+chartCount++;
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
-			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosUp);			
+			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosDown);			
 			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);	
 			pointStr='';
 
@@ -144,9 +152,7 @@
 					chartDraw.drawCircle(point,"plotPoint",DataSet[i][k][1]);									
 			}
 			crossHairLine[i]= drawCrossHair(chartDraw,ob.yAxisTicks[i],"crossHair","rect");		
-
-		}
-		
+		}	
 	}
 
 	function drawXAxisTitle(selector){
@@ -569,7 +575,7 @@
 		return line;	
 	}
 
-	Svg.prototype.drawXaxis= function(noChart,tickList){
+	Svg.prototype.drawXaxis= function(noChart,tickList,tickPosDown){
 		var x1= -(this.marginX-this.paddingX1)-1;
 		var y1=0;
 		var x2=this.width;
@@ -579,33 +585,63 @@
 		var dateMax=ob.xAxisTicks[ob.xAxisTicks.length-1];
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
-
-//---------ticks draw and ticks text		
-			for(var i=0; i<ob.xAxisTicks.length; i++){
-				x1=this.xShift(ob.xAxisTicks[i].getTime(),ob.xAxisTicks[0].getTime(),xDiff);
-				y1=-(this.marginY-this.paddingY1);
-				x2=x1;
-				y2=-(this.marginY-this.paddingY0);				
-				point=this.coordinate((x1+2),(y1-10));
-				this.drawLine(x1,y1,x2,y2,"xAxis");
-
-//---------ticks text calculation
-				if(noChart==(ob.chart.yMap.length-1)){
-					if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=ob.xAxisTicks[i].toString().split(' ')[4];
-					if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=ob.xAxisTicks[i].toString().split(' ')[0];
-					if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
-					if(dateMax.getFullYear()!=dateMin.getFullYear())
-						xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
-					this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
-
+console.log(typeof tickPosDown);
+			if(!tickPosDown){				
+				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
+					for(var i=0; i<ob.xAxisTicks.length; i++){
+						x1=this.xShift(ob.xAxisTicks[i].getTime(),ob.xAxisTicks[0].getTime(),xDiff);
+						y1=-(this.marginY-this.paddingY1);
+						x2=x1;
+						y2=-(this.marginY-this.paddingY0);				
+						point=this.coordinate((x1+2),(y1-10));
+						this.drawLine(x1,y1,x2,y2,"xAxis");
+		//---------ticks text calculation
+				//		if(noChart==(ob.chart.yMap.length-1)){
+							if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[4];
+							if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[0];
+							if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
+							if(dateMax.getFullYear()!=dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
+							this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
+				//		}
+					}
 				}
-			}			
+					
+			}else{
+				//noChart--;
+				if(noChartRow>0) {
+	//---------ticks draw and ticks text
+	
+					for(var i=0; i<ob.xAxisTicks.length; i++){
+							x1=this.xShift(ob.xAxisTicks[i].getTime(),ob.xAxisTicks[0].getTime(),xDiff);
+							y1=(this.height-this.marginY-this.topMarginY-8);
+							x2=x1;
+							y2=(this.height-this.marginY-this.topMarginY);				
+							point=this.coordinate((x1+2),(y1+45));
+							this.drawLine(x1,y1,x2,y2,"xAxis");
+
+			//---------ticks text calculation
+						//	if(i<=(noChartRow-1)){
+								if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+									xTickStr=ob.xAxisTicks[i].toString().split(' ')[4];
+								if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+									xTickStr=ob.xAxisTicks[i].toString().split(' ')[0];
+								if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+									xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
+								if(dateMax.getFullYear()!=dateMin.getFullYear())
+									xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
+								this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
+						//	}
+					}
+				noChartRow--;					
+			}
+		}			
 	}	
 
-	Svg.prototype.drawYaxis= function(tickList,yAxisTitle){
+	Svg.prototype.drawYaxis= function(tickList,yAxisTitle,tickPosDown){
 		
 		var len,diff,plotFactor;
 		var y1;
@@ -689,9 +725,25 @@
 			yPrev=y1;
 		} 
 //titles yaxis
-//		point=this.coordinate(-(this.marginX-this.paddingTextX+Math.floor(this.paddingTextX/2)+10),Math.floor(ob.chart.height/2)-Math.floor((yAxisTitle.length-1)/2));
-//		this.drawText(point,".5em",yAxisTitle,"yAxisTitle","270");
+		if(!tickPosDown){
+			points= (this.marginX-2)+ ','+0+' '+(this.width+this.marginX)+','+0+' '+(this.width+this.marginX)+','+this.topMarginY+' '+(this.marginX-2)+','+this.topMarginY+' '+(this.marginX-2)+ ','+0;
+			this.drawPolygon(points,"titles");		
 
+			point={
+				x:this.width/2+this.marginX,
+				y:this.topMarginY-15
+			};
+			this.drawText(point,".5em",yAxisTitle,"yAxisTitle","0");		
+		}else{
+			points= (this.marginX-2)+ ','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-40)+' '+(this.marginX-2)+','+(this.height-40)+' '+(this.marginX-2)+ ','+(this.height-20);
+			this.drawPolygon(points,"titles");
+			point={
+				x:this.width/2+this.marginX,
+				y:this.height-15
+			};
+
+			this.drawText(point,".5em",yAxisTitle,"yAxisTitle","0");		
+		}
 	}
 
 	Svg.prototype.xShift=function(item,min,diff){
@@ -1020,7 +1072,7 @@
 		}
 	}
 
-	function columncharts(selector,tickPosUp){
+	function columncharts(selector,tickPosDown){
 		var columnMinDiff=0,columnDiff;
 		var yDiff,xDiff;
 		var x;
@@ -1037,10 +1089,13 @@
 		xRangeTicks();
 		yRangeTicks();	
 
+		chartCount=0;
 		for(var i=0,count=0; i<ob.chart.yMap.length; i++){
+			chartCount++;
+
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
-			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosUp);			
-			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);		
+			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosDown);			
+			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap,tickPosDown);		
 
 			xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();							
 
