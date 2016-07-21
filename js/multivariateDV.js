@@ -8,21 +8,96 @@
 	var marginLeft= 0;
 	var column=[];
 
+	window.CustomApi=function(selector){
+		this.dataMap=ob.chart.yMap;
+		this.data=DataSet;
+		this.selector=selector;
+	}
+/*	CustomApi.prototype.Avg=function(func){
+		ob.chart.yMap=avg(this.dataMap,this.data);
+	}
+/*	function avg(dataMapList,dataList){
+		var dataMapListSize=dataMapList.length;
+		var avg
+	} */
+
+	CustomApi.prototype.SortByMax=function(){
+		ob.chart.yMap=sortMax(this.dataMap,this.data);	
+		this.chartInstantiate();
+	}
+	
+	CustomApi.prototype.chartInstantiate=function(){
+		var charts=document.getElementsByClassName("chartSpace");
+		while(charts.length)
+			document.getElementById(this.selector).removeChild(charts[0]);
+		DataSet=[];
+		retriveData();
+		if(ob.chart.type=="line"){
+			linecharts(this.selector);
+		}
+		if(ob.chart.type=="column");
+			columncharts(this.selector); 
+	}
+
+	function sortMax(dataMapList,dataList){
+		var dataMapListSize=dataMapList.length;
+		var max;
+		var find_max;
+		dataMaxArray=[];
+		var temp;
+		find_max=findMax(dataList[0]);
+		
+		for(var i=0; i<dataMapListSize; i++){
+			dataMaxArray[i]=findMax(dataList[i]);			
+		}
+
+		for(var i=0;i<dataMaxArray.length; i++){
+			for(var j=i+1; j<dataMaxArray.length;j++){
+				if(dataMaxArray[i]>dataMaxArray[j]){
+					temp=dataMaxArray[i];
+					dataMaxArray[i]=dataMaxArray[j];
+					dataMaxArray[j]=temp;
+
+					temp=dataMapList[i];
+					dataMapList[i]=dataMapList[j];
+					dataMapList[j]=temp;
+				}
+			}
+		}
+		return dataMapList;
+	}
+
+	function findMax(list){
+		var max=undefined;
+		if(list[0][1])
+			max=list[0][1];
+
+		for(var i=1; i<list.length; i++){
+			if(max< list[i][1])
+				max=list[i][1];
+		}
+		return max;
+	}
 	window.render=function(user_input,selector){
+
 		var user_input_raw=user_input;				
 		if(typeof user_input=="string"){
 			user_input=JSON.parse(user_input);
 		}		
 		
-		chart_info(user_input);	
-		xRangeTicks();
-		yRangeTicks();	
+		chart_info(user_input);			
 		
-		drawChartHeading(selector);
-		//linecharts(selector);
-		columncharts(selector);
 
-		drawXAxisTitle(selector);
+		retriveData();
+
+		drawChartHeading(selector);
+		if(ob.chart.type=="line")
+			linecharts(selector);
+		if(ob.chart.type=="column")
+			columncharts(selector); 
+		window.customApiOb= new CustomApi(selector);
+	
+		//drawXAxisTitle(selector);
 	}
 
 	function linecharts(selector){
@@ -30,6 +105,9 @@
 		var pointStr='';
 		var yDiff,xDiff;
 		var retriveMonth;
+
+		xRangeTicks();
+		yRangeTicks();	
 
 		for(var i=0; i<ob.chart.yMap.length; i++){
 
@@ -61,8 +139,6 @@
 		
 	}
 
-
-	
 	function drawXAxisTitle(selector){
 		var xAxisTitle=new Svg(selector,ob.chart.width,40,"xAxisTitle");
 		point={
@@ -146,8 +222,9 @@
 		ob.chart.height=(ob.chart.height>500 || ob.chart.height<200) ? 300 : ob.chart.height;
 		ob.chart.width= user_input.chart.width || 500;						
 		ob.chart.width=(ob.chart.width>1000 || ob.chart.width<200)?500: ob.chart.width;
+		ob.chart.type=user_input.chart.type||"line";
 		ob.chart.marginX=80;
-		ob.chart.marginY=90;
+		ob.chart.marginY=20;
 		ob.chart.xMap=user_input.chart.xAxisMap;	
 		ob.data=user_input.data;	
 
@@ -173,8 +250,9 @@
 			}	
 		}
 		ob.chart.yMap=uniqueKeys;	
+	}
 
-
+	function retriveData(){
 		for(var i=0; i<ob.chart.yMap.length; i++){
 			DataSet[i]=[];
 			for(var j=0,k=0;j<ob.data.length;j++){				
@@ -187,7 +265,6 @@
 			}
 			DataSet[i]=sortByDate(DataSet[i]);
 		}
-
 	}
 
 	function xRangeTicks(){
@@ -446,7 +523,7 @@
 			this.width=(this.width>1000 || this.width<200)?500: this.width;
 		}
 
-		percntWidth=Math.ceil((100+this.width)/window.innerWidth*100);
+		percntWidth=Math.ceil((this.width)/window.innerWidth*100)+8;
 		this.svg.setAttribute("class",classIn);
 		
 		this.svg.setAttribute("height", this.height);	
@@ -655,7 +732,7 @@
 
 	function drawCrossHair(svgOb,tickList,classIn,rectId){		
 		
-
+		var tooltip;
 		var rectLeft,height;
 		var diff=tickList[tickList.length-2]-tickList[0];
 		var x1=-(svgOb.marginX-svgOb.paddingX1);
@@ -670,29 +747,40 @@
 		var rect=svgOb.drawRect(point.x+5,point.y-15,classIn,height,svgOb.width,"stroke:#black; fill:transparent");
 		var crossHair=svgOb.drawLine(x1,y1,x2,y2,"crossHairLine");
 		crossHair.setAttribute("visibility","hidden");	
-		var tooltip=svgOb.drawRect(point.x+5,point.y,"tooltip",10,0,"fill:#cddc39");		
-		var tooltipText=svgOb.drawText(point,"","","tooltipText",0);
 
-		tooltipText.setAttribute("style",'fill: #000');		
-		tooltipText.setAttribute("class","tooltipText");	
-
-		svgOb.svg.insertBefore(tooltip,tooltipText);
-
+		tooltip=tooltips(svgOb,point,"tooltip","tooltipText");
 		rectLeft=rect.getBoundingClientRect().left;	
-
-		rect.addEventListener("mousemove",function(event){disPatchMouserollOver(event,rectLeft)},false);
+																   
+		rect.addEventListener("mousemove",function(event){disPatchMouserollOver(event,rectLeft);},false);
 		rect.addEventListener("mouserollover",syncCrossHair,false);
 		rect.addEventListener("mouseout",hideCrossHair,false);		
 	}
-	Svg.prototype.drawRect=function(x,y,classIn,h,w,style){
+
+	function tooltips(svgOb,point,class_Tooltip,class_TooltipText){
+		var tooltip=svgOb.drawRect(point.x+5,point.y,class_Tooltip,10,0,"stroke:#8D6D60 ;stroke-width:1; fill:#FDD9CB");		
+		var tooltipText=svgOb.drawText(point,"","",class_TooltipText,0);
+
+		tooltipText.setAttribute("style",'fill: #8D6D60');		
+		tooltipText.setAttribute("class",class_TooltipText);
+
+		svgOb.svg.insertBefore(tooltip,tooltipText);
+		return {
+			"rect":tooltip,
+			"text":tooltipText
+		}
+	}
+
+	Svg.prototype.drawRect=function(x,y,classIn,h,w,style,value){
 		var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
 		style=style||"stroke:#3E72CC;fill:#3E72CC";
+		value=value||"";
 		rect.setAttribute("x",x);
 		rect.setAttribute("y",y);
 		rect.setAttribute("height",h);
 		rect.setAttribute("width",w);
 		rect.setAttribute("style",style);
 		rect.setAttribute("class",classIn);
+		rect.setAttribute("value",value);
 		this.svg.appendChild(rect);
 		return rect;
 	}
@@ -786,14 +874,18 @@
 				left=DataSet[i][keyIndex][2];
 				top=DataSet[i][keyIndex][3];
 				
-
-				textLength=DataSet[i][keyIndex][1].toString().length;
-
+				textLength=tooltipText[i].innerHTML.toString().length;
+				//textLength=6;
 				tooltipWidth=textLength*padding+2*padding;
 
 				tooltip[i].setAttribute("width",tooltipWidth.toString());
 				tooltip[i].setAttribute("height",tooltipHeight);
-				tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString();
+
+/*				if(DataSet[i][keyIndex][1].toString().length>=6){					
+					tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString().substring(0,6);
+				}
+				else  */
+					tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString();
 
 				pointX=left+5;
 				pointY=top-5;					
@@ -849,12 +941,17 @@
 						fixedDecimal=(DataSet[i][index2][1]%1).toString().length;
 					else
 						fixedDecimal=0;
-					tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
+				
+/*					if(((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString().length>=6){
+						tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString().substring(0,6);
+					}
+					else */
+						tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
 
 					top=Math.floor(yValue);
 					left=x1;
 					textLength=tooltipText[i].innerHTML.toString().length;
-				
+					//textLength=6;
 
 					tooltipWidth=textLength*padding+2*padding;
 
@@ -922,6 +1019,13 @@
 		var pointRightLimit;	
 		var pointLowerLeftLimit;
 		var plotAreaRect;
+		var tooltipList=[],columns=[];
+		var tooltip;
+
+
+		xRangeTicks();
+		yRangeTicks();	
+
 		for(var i=0,count=0; i<ob.chart.yMap.length; i++){
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
 			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i]);			
@@ -962,49 +1066,121 @@
 					point.y-=3;
 					height=3;
 				}
-
-				column=chartDraw.drawRect(x,point.y,"column",height,width,"");					
+				
+				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1]);					
 				left=column.getAttribute("x");
 				top=column.getAttribute("y");
+				
+				tooltip=tooltips(chartDraw,point,"column_Tooltip","column_tooltipText");
+
+
 				column.addEventListener("mousemove",function(event,left,top){return (function(){disPatchMouseOver(event,left,top);})}(event,left,top),false);
 
 				column.addEventListener("mouserollover",highlightColumn,false);
 				column.addEventListener("mouseout",unfocus,false);
+				
 			}
 		}
-	}
 
+	}
 
 	function disPatchMouseOver(event,left,top){
 		var column= document.getElementsByClassName("column");	
-console.log(3,left);	
-
 		CustomMouseRollOver.detail.x=left;
 		CustomMouseRollOver.detail.y=top;
-		for(var i=0; i<column.length; i++){			
-			if(column[i]!=event.target)
+		for(var i=0; i<column.length; i++){	
+			//if(column[i]!=event.target)
 				column[i].dispatchEvent(CustomMouseRollOver);						
 		}
 	}
 
 	function highlightColumn(event){
 		var left= event.detail.x;
-//console.log(left);		
+		var top=event.detail.y;	
 		var x;
+		var padding,tooltipHeight;
 		var column= document.getElementsByClassName("column");
-		for (var i=0; i< column.length;i++){
-			x=column[i].getAttribute("x");
+		var tooltip= document.getElementsByClassName("column_Tooltip");
+		var tooltipText= document.getElementsByClassName("column_tooltipText");
+		tooltipHeight=25;
+		padding=10;
+
+		var topLimit=ob.chart.marginY;
+		var bottomLimit=ob.chart.height- ob.chart.marginY;
+		var rightLimit=ob.chart.width;
+		var leftLimit=ob.chart.marginX;
+		
+		for (var i=0,k=0; i< column.length;i++,k++){
+			
 
 			if(column[i].getAttribute("x")==left){
 				column[i].setAttribute("style","fill:#B74947;");
+				tooltipText[k].innerHTML=column[i].getAttribute("value");				
+				top=Number(column[i].getAttribute("y"));
+
+				left=Number(column[i].getAttribute("x"));
+			
+				textLength=tooltipText[k].innerHTML.toString().length;
+				//textLength=6;
+				tooltipWidth=textLength*padding+2*padding;
+
+				tooltip[k].setAttribute("width",tooltipWidth.toString());
+				tooltip[k].setAttribute("height",tooltipHeight);
+
+	/*				if(DataSet[i][keyIndex][1].toString().length>=6){					
+						tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString().substring(0,6);
+					}
+					else  //*/
+					//tooltipText[k].innerHTML=DataSet[i][keyIndex][1].toString();
+
+				pointX=Number(left)+10;
+			
+				pointY=top-5;					
+				if((rightLimit -15) <(left+tooltipWidth)){
+					pointX=left-tooltipWidth;
+				}
+
+				if((leftLimit+20) > pointX){
+					pointX=left+leftLimit-pointX+15;
+				}
+
+				if((top+tooltipHeight)>(bottomLimit)){
+					pointY=top+tooltipHeight;
+					while((pointY+tooltipHeight-5)>=(bottomLimit)){
+						pointY--;					
+					}											
+				}
+
+				if((top)< (topLimit +5)){
+					pointY=top;
+					while(pointY<=topLimit+25){					
+						pointY++;
+					}
+				}				
+
+				tooltip[k].setAttribute("x",pointX);
+				
+				tooltipText[k].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
+
+				tooltip[k].setAttribute("y",pointY-10);
+				tooltipText[k].setAttribute("y",(pointY+7));
+
+				tooltip[k].setAttribute("visibility","visible");
+				tooltipText[k].setAttribute("visibility","visible");
 			}
+
 		}	
 	}
 
 	function unfocus(event){
 		var column= document.getElementsByClassName("column");
-		for (var i=0; i< column.length;i++){
+		var tooltip= document.getElementsByClassName("column_Tooltip");
+		var tooltipText= document.getElementsByClassName("column_tooltipText");		
+		for (var i=0,k=0; i< column.length;k++,i++){
 			column[i].setAttribute("style","fill:#3E72CC;");
+
+			tooltip[k].setAttribute("visibility","hidden");
+			tooltipText[k].setAttribute("visibility","hidden");
 		}
 	}
 

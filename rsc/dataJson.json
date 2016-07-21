@@ -4,6 +4,7 @@
          "subCaption": "FusionCharts Training Project 1",
          "height":300,
          "width":300,
+         "type":"column",
          "xAxisMap":"date"
       },        
          "data":[
@@ -63,7 +64,7 @@
                   "price":6546,
                   "sale":-151651,
                   "profit":-784895,
-                  "date":"07/03/2012"                
+                  "date":"04/03/2012"                
                }
             ]
       }
