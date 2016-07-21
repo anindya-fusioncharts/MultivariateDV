@@ -33,10 +33,9 @@
 		DataSet=[];
 		retriveData();
 		if(ob.chart.type=="line"){
-			linecharts(this.selector);
-		}
-		if(ob.chart.type=="column");
-			columncharts(this.selector); 
+			linecharts(this.selector,tickPosUp);
+		} else if(ob.chart.type=="column")
+			columncharts(this.selector,tickPosUp); 
 	}
 
 	function sortMax(dataMapList,dataList){
@@ -86,21 +85,32 @@
 		}		
 		
 		chart_info(user_input);			
-		
-
 		retriveData();
 
+		tickPosUp=tickspoistion();
+
 		drawChartHeading(selector);
+
 		if(ob.chart.type=="line")
-			linecharts(selector);
+			linecharts(selector,tickPosUp);
 		if(ob.chart.type=="column")
-			columncharts(selector); 
+			columncharts(selector,tickPosUp); 
+
 		window.customApiOb= new CustomApi(selector);
 	
 		//drawXAxisTitle(selector);
 	}
 
-	function linecharts(selector){
+	function tickspoistion(){
+		noChartRow=Math.floor(100/(Math.ceil((ob.chart.width)/window.innerWidth*100)+8));
+		if(ob.chart.yMap%noChartRow==0)
+			return false;
+		else
+			return true;
+	}
+
+
+	function linecharts(selector,tickPosUp){
 		var point={};
 		var pointStr='';
 		var yDiff,xDiff;
@@ -112,7 +122,7 @@
 		for(var i=0; i<ob.chart.yMap.length; i++){
 
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
-			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i]);			
+			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosUp);			
 			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);	
 			pointStr='';
 
@@ -225,6 +235,7 @@
 		ob.chart.type=user_input.chart.type||"line";
 		ob.chart.marginX=80;
 		ob.chart.marginY=20;
+		ob.chart.topMarginY=60;
 		ob.chart.xMap=user_input.chart.xAxisMap;	
 		ob.data=user_input.data;	
 
@@ -502,7 +513,7 @@
 
 		this.marginX = ob.chart.marginX;	
 		this.marginY = ob.chart.marginY;
-
+		this.topMarginY=ob.chart.topMarginY;
 		this.paddingX0= this.marginX;	
 		this.paddingY0= this.marginY;	
 		this.paddingX1=this.marginX-5;
@@ -688,7 +699,7 @@
 	}
 
 	Svg.prototype.yShift=function(item,min,diff){
-		return Math.floor(((item-min)/diff)*(this.height-this.marginY-7));
+		return Math.floor(((item-min)/diff)*(this.height-this.marginY-7-this.topMarginY));
 	}
 
 
@@ -816,7 +827,7 @@
 		var crossHairArray=document.getElementsByClassName("crossHair");	
 		CustomMouseRollOver.detail.x=Math.ceil(event.clientX-left);
 		for(var i=0; i<crossHairArray.length; i++){
-			if(crossHairArray[i]!=event.target)
+		//	if(crossHairArray[i]!=event.target)
 				crossHairArray[i].dispatchEvent(CustomMouseRollOver);
 		}
 	}
@@ -1009,7 +1020,7 @@
 		}
 	}
 
-	function columncharts(selector){
+	function columncharts(selector,tickPosUp){
 		var columnMinDiff=0,columnDiff;
 		var yDiff,xDiff;
 		var x;
@@ -1028,7 +1039,7 @@
 
 		for(var i=0,count=0; i<ob.chart.yMap.length; i++){
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
-			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i]);			
+			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosUp);			
 			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);		
 
 			xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();							
@@ -1037,26 +1048,31 @@
 
 			pointRightLimit=chartDraw.xShift(ob.xAxisTicks[ob.xAxisTicks.length-1].getTime(),ob.xAxisTicks[0].getTime(),xDiff)+chartDraw.marginX;
 			
-			
-			for(var k=1;k<DataSet[i].length;k++){
-				if(count<2){
-					columnMinDiff=Math.abs(columnMinDiff-DataSet[i][k-1][0]);
-					count++;
-				} else{
-					columnDiff=Math.abs(DataSet[i][k-1][0]-DataSet[i][k][0])
-					if(columnMinDiff>columnDiff){
-						columnMinDiff=columnDiff;	
-					}
-				}								
+			if(i==0){
+				for(var k=1;k<DataSet[i].length;k++){
+					if(count<2){
+						columnMinDiff=Math.abs(columnMinDiff-chartDraw.xShift(DataSet[i][k-1][0],ob.xAxisTicks[0].getTime() ,xDiff));
+						count++;
+					} else{
+						columnDiff=Math.abs(chartDraw.xShift(DataSet[i][k-1][0],ob.xAxisTicks[0].getTime() ,xDiff)-chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff))
+						if(columnMinDiff>columnDiff){
+							columnMinDiff=columnDiff;	
+						}
+					}								
+				}	
+
+				columnMinDiff= Math.floor(columnMinDiff/2.2);				
 			}	
+
+				
 			for(var k=0;k<DataSet[i].length;k++){
 				yDiff=ob.yAxisTicks[i][ob.yAxisTicks[i].length-1]-ob.yAxisTicks[i][0];					
 				point=chartDraw.coordinate(chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff), chartDraw.yShift(DataSet[i][k][1],ob.yAxisTicks[i][0],yDiff));		
 
-				width=4;
+				width=(columnMinDiff%2==0)?columnMinDiff:(columnMinDiff-1);
 				x=point.x-width/2;
 				if(x<pointLowerLeftLimit.x){
-					x=x+Math.abs(x-pointLowerLeftLimit.x);
+					x=x+Math.abs(x-pointLowerLeftLimit.x)-1;
 				}			
 				if((x+width)>pointRightLimit)
 					x=x-Math.abs(x+width-pointRightLimit);
@@ -1089,7 +1105,6 @@
 		CustomMouseRollOver.detail.x=left;
 		CustomMouseRollOver.detail.y=top;
 		for(var i=0; i<column.length; i++){	
-			//if(column[i]!=event.target)
 				column[i].dispatchEvent(CustomMouseRollOver);						
 		}
 	}
