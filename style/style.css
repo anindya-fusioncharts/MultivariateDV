@@ -1,7 +1,7 @@
 
 .plotPoint{
 	border-radius: 60px !important;
-	fill: 	#ffffff ;
+
 	stroke: #1e7ac9 !important;
 	stroke-width:2;
 	z-index: 200 !important;
@@ -126,4 +126,9 @@
 	stroke-width:1;
 	stroke:#212121;
 	shape-rendering:crispEdges;
+}
+
+#selectSpace{
+	border:1px solid "#0288d1" !important;
+	
 }

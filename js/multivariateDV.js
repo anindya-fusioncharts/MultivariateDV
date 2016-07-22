@@ -8,6 +8,9 @@
 	var marginLeft= 0;
 	var column=[];
 	var noChartRow,chartCount=0;
+	var selectSpace;
+	var mousedown=false;
+
 
 	window.CustomApi=function(selector){
 		this.dataMap=ob.chart.yMap;
@@ -87,7 +90,7 @@
 		
 		chart_info(user_input);			
 		retriveData();
-
+		selectDiv(selector);
 		tickPosDown=tickspoistion();
 		if(!tickPosDown){
 			ob.chart.marginY=75;
@@ -105,7 +108,7 @@
 			columncharts(selector,tickPosDown); 
 
 		window.customApiOb= new CustomApi(selector);
-	
+		
 		//drawXAxisTitle(selector);
 	}
 
@@ -116,19 +119,31 @@
 		else
 			return true;
 	}
-
+	function selectDiv(selector){
+		selectSpace=document.createElement("div");
+		selectSpace.style.position="absolute";
+		selectSpace.style.background ="#727272";
+		selectSpace.style.color = "#727272";
+		selectSpace.innerHTML = "";
+		selectSpace.style.opacity="0.3";
+		selectSpace.id="selectSpace";
+		selectSpace.style.left=0+"px";
+		selectSpace.style.top=0+"px";
+		document.body.appendChild(selectSpace);
+	}
 
 	function linecharts(selector,tickPosDown){
 		var point={};
 		var pointStr='';
 		var yDiff,xDiff;
 		var retriveMonth;
-
+		var svgLeft,svgTop;
 		xRangeTicks();
 		yRangeTicks();	
-chartCount=0;
+		chartCount=0;
+		tickPosDown=tickspoistion();
 		for(var i=0; i<ob.chart.yMap.length; i++){
-chartCount++;
+			chartCount++;
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
 			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosDown);			
 			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap);	
@@ -145,17 +160,156 @@ chartCount++;
 
 			chartDraw.drawPoly(pointStr,'graph');	
 
+			svgLeft=parseInt(chartDraw.svg.getBoundingClientRect().left);
+			svgTop=parseInt(chartDraw.svg.getBoundingClientRect().top);
 			for(k=0;k<DataSet[i].length;k++){				
-					point=chartDraw.coordinate(chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff), chartDraw.yShift(DataSet[i][k][1],ob.yAxisTicks[i][0],yDiff));		
-					DataSet[i][k][2]=point.x;
-					DataSet[i][k][3]=point.y;
-					chartDraw.drawCircle(point,"plotPoint",DataSet[i][k][1]);									
+				point=chartDraw.coordinate(chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff), chartDraw.yShift(DataSet[i][k][1],ob.yAxisTicks[i][0],yDiff));		
+				DataSet[i][k][2]=point.x;
+				DataSet[i][k][3]=point.y;
+				chartDraw.drawCircle(point,"plotPoint",(svgLeft+point.x),(svgTop+point.y));										
 			}
-			crossHairLine[i]= drawCrossHair(chartDraw,ob.yAxisTicks[i],"crossHair","rect");		
+			crossHairLine[i]= drawCrossHair(chartDraw,ob.yAxisTicks[i],"crossHair","rect");	
+
+			chartDraw.svg.addEventListener("mousedown",function(event){drawSelectSpace(event,chartDraw,selector,"line");});
+			chartDraw.svg.addEventListener("mousemove",function(event){ResizeSelectSpace(event,chartDraw,selector,"line");});
+			chartDraw.svg.addEventListener("mouseup",function(event){DestroySelectSpace(event,chartDraw,selector,"line");});	
+			chartDraw.svg.addEventListener("mouseleave",function(event){DestroySelectSpace(event,chartDraw,selector,"line");});	
+
+		}
+
+			
+	}
+	
+	function drawSelectSpace(event,svgOb,selector,type){
+		selectSpace.style.left="0px";
+		selectSpace.style.top="0px";
+		selectSpace.style.width="0px";
+		selectSpace.style.height="0px";
+
+		mousedown=true;
+		if(type=="line")
+			resetLine();
+		else if(type=="column")
+			resetCol();
+
+		var x= event.clientX;
+		var y=event.pageY;	
+
+		selectSpace.style.left=x+"px";
+		selectSpace.style.top=y+"px";
+
+	}
+
+	function resetLine(){
+		var plotPoint=document.getElementsByClassName("plotPoint");
+		
+		for(var i=0; i< plotPoint.length; i++){
+			plotPoint[i].setAttribute("fill","#ffffff");
+			plotPoint[i].setAttribute("r",4);	
+		}		
+	}
+
+	function resetCol(){
+		var column=document.getElementsByClassName("column");
+		
+		for(var i=0; i< column.length; i++){
+			column[i].setAttribute("style","fill:#3E72CC");		
+		}		
+	}
+
+	function selectPlotPoint(){
+		var selectSpace=document.getElementById("selectSpace");
+		var x1=parseInt(selectSpace.style.left);
+		var y1=parseInt(selectSpace.style.top);
+		var x2=x1+ parseInt(selectSpace.style.width);
+		var y2=y1+parseInt(selectSpace.style.height);
+		var pointSelect=[];
+		var maxX=-1,minX=99999;		
+		var x,y;		
+		var plotPoint=document.getElementsByClassName("plotPoint");
+		
+		for(var i=0,k=0; i< plotPoint.length; i++){
+			x=Number(plotPoint[i].getAttribute("absoluteX"));
+			y=Number(plotPoint[i].getAttribute("absoluteY"));
+			if(x>=x1 && x<=x2 && y>=y1 && y<=y2){
+				plotPoint[i].setAttribute("fill","#f44336");
+				plotPoint[i].setAttribute("r",6);	
+
+				if(minX>Number(plotPoint[i].getAttribute("cx")))
+					minX=Number(plotPoint[i].getAttribute("cx"));
+
+				if(maxX<Number(plotPoint[i].getAttribute("cx")))
+					maxX=Number(plotPoint[i].getAttribute("cx"));				
+			}
+		}
+
+		for(var i=0; i< plotPoint.length; i++){
+			if((minX <= Number(plotPoint[i].getAttribute("cx"))) && Number(plotPoint[i].getAttribute("cx")) <= maxX){
+				plotPoint[i].setAttribute("fill","#f44336");
+				plotPoint[i].setAttribute("r",6);	
+			}
+		}
+	}
+
+	function selectColumn(){
+		var selectSpace=document.getElementById("selectSpace");
+		var x1=parseInt(selectSpace.style.left);
+		var y1=parseInt(selectSpace.style.top);
+		var x2=x1+ parseInt(selectSpace.style.width);
+		var y2=y1+parseInt(selectSpace.style.height);
+		var maxX=-1,minX=99999;
+		var x,y,h,w;		
+		var column=document.getElementsByClassName("column");
+
+		for(var i=0,k=0; i< column.length; i++){
+			x=Number(column[i].getAttribute("absoluteX"));
+			y=Number(column[i].getAttribute("absoluteY"));
+			h=Number(column[i].getAttribute("height"));
+			w=Number(column[i].getAttribute("width"));
+
+			if(((y1>=(y-h) && y1<=y) || (y2>=(y-h) && y2<=y)) && ((x1>=x && x1<=(x+w)) || (x2>=x && x2<=(x+w))) ){
+				
+				column[i].setAttribute("style","fill:#B74947");	
+				if(minX>=Number(column[i].getAttribute("x")))
+					minX=Number(column[i].getAttribute("x"));
+				if(maxX<Number(column[i].getAttribute("x")))
+					maxX=Number(column[i].getAttribute("x"));
+			}
+		}
+
+		for(var i=0; i< column.length; i++){
+			if((Number(column[i].getAttribute("x")))>=minX && Number(column[i].getAttribute("x")) <= maxX){
+				column[i].setAttribute("style","fill:#B74947");					
+			}			
+		}
+	}
+
+	function ResizeSelectSpace(event,svgOb,selector,type){
+		var x,y;
+		if(mousedown){
+			x=	parseInt(selectSpace.style.left);
+			y=parseInt(selectSpace.style.top);
+			selectSpace.style.width=Math.abs(x-event.clientX)+ "px";
+			selectSpace.style.height=Math.abs(y- event.pageY)+ "px";
+			if(type=="line"){
+				selectPlotPoint();
+			}
+			if(type=="column"){
+				selectColumn();
+			}										
 		}	
 	}
 
-	function drawXAxisTitle(selector){
+	function DestroySelectSpace(event,svgOb,selector,type){
+		mousedown=false;
+		var selectSpace=document.getElementById("selectSpace");
+		selectSpace.style.left="0px";
+		selectSpace.style.top="0px";
+		selectSpace.style.width="0px";
+		selectSpace.style.height="0px";	
+	}
+
+/*	function drawXAxisTitle(selector){
 		var xAxisTitle=new Svg(selector,ob.chart.width,40,"xAxisTitle");
 		point={
 			x:xAxisTitle.width- Math.floor(xAxisTitle.width/2 -xAxisTitle.marginX),
@@ -165,7 +319,7 @@ chartCount++;
 		var br=document.createElement("br");
 		document.getElementById(selector).appendChild(br);		
 	}
-
+*/
 	function drawChartHeading(selector) {
 		var chartHeadings=new Svg(selector,window.innerWidth-200,50,"Heading");
 
@@ -183,7 +337,6 @@ chartCount++;
 	
 		var br=document.createElement("br");
 		document.getElementById(selector).appendChild(br);		
-
 	}
 
 	function sortByDate(data){
@@ -549,7 +702,8 @@ chartCount++;
 
 		if(classIn!="Heading")
 			this.svg.setAttribute("style","width:"+percntWidth+"%;");
-		this.rootElement.appendChild(this.svg);		
+		this.rootElement.appendChild(this.svg);	
+		return this;	
 	}
 
 
@@ -585,7 +739,7 @@ chartCount++;
 		var dateMax=ob.xAxisTicks[ob.xAxisTicks.length-1];
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
-console.log(typeof tickPosDown);
+
 			if(!tickPosDown){				
 				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
 					for(var i=0; i<ob.xAxisTicks.length; i++){
@@ -611,7 +765,8 @@ console.log(typeof tickPosDown);
 				}
 					
 			}else{
-				//noChart--;
+				//-------noChart
+
 				if(noChartRow>0) {
 	//---------ticks draw and ticks text
 	
@@ -764,12 +919,14 @@ console.log(typeof tickPosDown);
 		return polyline;
 	}
 
-	Svg.prototype.drawCircle= function(point,classIn,tooltipValue){
+	Svg.prototype.drawCircle= function(point,classIn,absoluteX,absoluteY){
 		var circle=document.createElementNS("http://www.w3.org/2000/svg", "circle");	
 		circle.setAttribute("cx",point.x);
 		circle.setAttribute("cy",point.y);
 		circle.setAttribute("r",4);
-		circle.setAttribute("fill","white");
+		circle.setAttribute("fill","#ffffff");
+		circle.setAttribute("absoluteX",absoluteX);
+		circle.setAttribute("absoluteY",absoluteY);
 		circle.setAttribute("class",classIn);
 		circle.style.zIndex=1000;
 		this.svg.appendChild(circle);	
@@ -833,7 +990,7 @@ console.log(typeof tickPosDown);
 		}
 	}
 
-	Svg.prototype.drawRect=function(x,y,classIn,h,w,style,value){
+	Svg.prototype.drawRect=function(x,y,classIn,h,w,style,value,absoluteX,absoluteY){
 		var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
 		style=style||"stroke:#3E72CC;fill:#3E72CC";
 		value=value||"";
@@ -844,6 +1001,8 @@ console.log(typeof tickPosDown);
 		rect.setAttribute("style",style);
 		rect.setAttribute("class",classIn);
 		rect.setAttribute("value",value);
+		rect.setAttribute("absoluteX",absoluteX);
+		rect.setAttribute("absoluteY",absoluteY);		
 		this.svg.appendChild(rect);
 		return rect;
 	}
@@ -1088,7 +1247,7 @@ console.log(typeof tickPosDown);
 
 		xRangeTicks();
 		yRangeTicks();	
-
+		tickPosDown=tickspoistion();
 		chartCount=0;
 		for(var i=0,count=0; i<ob.chart.yMap.length; i++){
 			chartCount++;
@@ -1118,7 +1277,9 @@ console.log(typeof tickPosDown);
 
 				columnMinDiff= Math.floor(columnMinDiff/2.2);				
 			}	
-
+			
+			svgLeft=parseInt(chartDraw.svg.getBoundingClientRect().left);
+			svgTop=parseInt(chartDraw.svg.getBoundingClientRect().top);
 				
 			for(var k=0;k<DataSet[i].length;k++){
 				yDiff=ob.yAxisTicks[i][ob.yAxisTicks[i].length-1]-ob.yAxisTicks[i][0];					
@@ -1127,7 +1288,7 @@ console.log(typeof tickPosDown);
 				width=(columnMinDiff%2==0)?columnMinDiff:(columnMinDiff-1);
 				x=point.x-width/2;
 				if(x<pointLowerLeftLimit.x){
-					x=x+Math.abs(x-pointLowerLeftLimit.x)-1;
+					x=x+Math.abs(x-pointLowerLeftLimit.x)-0.5;
 				}			
 				if((x+width)>pointRightLimit)
 					x=x-Math.abs(x+width-pointRightLimit);
@@ -1138,7 +1299,7 @@ console.log(typeof tickPosDown);
 					height=3;
 				}
 				
-				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1]);					
+				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop-point.y));					
 				left=column.getAttribute("x");
 				top=column.getAttribute("y");
 				
@@ -1150,7 +1311,12 @@ console.log(typeof tickPosDown);
 				column.addEventListener("mouserollover",highlightColumn,false);
 				column.addEventListener("mouseout",unfocus,false);
 				
+
 			}
+			chartDraw.svg.addEventListener("mousedown",function(event){drawSelectSpace(event,chartDraw,selector,"column");});
+			chartDraw.svg.addEventListener("mousemove",function(event){ResizeSelectSpace(event,chartDraw,selector,"column");});
+			chartDraw.svg.addEventListener("mouseup",function(event){DestroySelectSpace(event,chartDraw,selector,"column");});	
+			chartDraw.svg.addEventListener("mouseleave",function(event){DestroySelectSpace(event,chartDraw,selector,"column");});	
 		}
 
 	}
