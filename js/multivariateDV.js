@@ -17,16 +17,28 @@
 		this.data=DataSet;
 		this.selector=selector;
 	}
-/*	CustomApi.prototype.Avg=function(func){
-		ob.chart.yMap=avg(this.dataMap,this.data);
-	}
-/*	function avg(dataMapList,dataList){
-		var dataMapListSize=dataMapList.length;
-		var avg
-	} */
 
-	CustomApi.prototype.SortByMax=function(){
-		ob.chart.yMap=sortMax(this.dataMap,this.data);	
+	CustomApi.prototype.Avg=function(func){
+		ob.chart.yMap=avg(this.dataMap,this.data,func);
+		this.chartInstantiate();
+	}
+/*
+	function avg(dataMapList,dataList,func){
+		var dataMapListSize=dataMapList.length;
+		var avgList=avgList(dataList);
+		if(func=="ascending")
+			return SortAsc(dataMapList,dataList);
+		if(func=="descending")
+			return SortDesc(dataMapList,dataList);
+	} 
+*/
+	CustomApi.prototype.SortDescending=function(){
+		ob.chart.yMap=SortDesc(this.dataMap,this.data);	
+		this.chartInstantiate();
+	}
+
+	CustomApi.prototype.SortAscending=function(){
+		ob.chart.yMap=SortAsc(this.dataMap,this.data);	
 		this.chartInstantiate();
 	}
 	
@@ -42,7 +54,16 @@
 			columncharts(this.selector,tickPosDown); 
 	}
 
-	function sortMax(dataMapList,dataList){
+	function avgList(dataList){
+		var avgList=[]
+		for(var i=0,sum=0; i< dataList.length; i++){
+			for(var j=0; j<dataList[i].length;sum+=dataList[i][j],j++);
+			avgList[i]=sum/j;
+		}
+		return avgList;
+	}
+
+	function SortAsc(dataMapList,dataList){
 		var dataMapListSize=dataMapList.length;
 		var max;
 		var find_max;
@@ -57,6 +78,33 @@
 		for(var i=0;i<dataMaxArray.length; i++){
 			for(var j=i+1; j<dataMaxArray.length;j++){
 				if(dataMaxArray[i]>dataMaxArray[j]){
+					temp=dataMaxArray[i];
+					dataMaxArray[i]=dataMaxArray[j];
+					dataMaxArray[j]=temp;
+
+					temp=dataMapList[i];
+					dataMapList[i]=dataMapList[j];
+					dataMapList[j]=temp;
+				}
+			}
+		}
+		return dataMapList;
+	}
+	function SortDesc(dataMapList,dataList){
+		var dataMapListSize=dataMapList.length;
+		var max;
+		var find_max;
+		dataMaxArray=[];
+		var temp;
+		find_max=findMax(dataList[0]);
+		
+		for(var i=0; i<dataMapListSize; i++){
+			dataMaxArray[i]=findMax(dataList[i]);			
+		}
+
+		for(var i=0;i<dataMaxArray.length; i++){
+			for(var j=i+1; j<dataMaxArray.length;j++){
+				if(dataMaxArray[i]<dataMaxArray[j]){
 					temp=dataMaxArray[i];
 					dataMaxArray[i]=dataMaxArray[j];
 					dataMaxArray[j]=temp;
@@ -755,7 +803,6 @@
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
 
-		tickPosDown=tickspoistion();
 			if(!tickPosDown){				
 				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
 					for(var i=0; i<ob.xAxisTicks.length; i++){
@@ -781,7 +828,6 @@
 				}
 			}else{
 				//-------noChart
-
 				if(noChartRow>0) {
 	//---------ticks draw and ticks text
 	
@@ -973,7 +1019,7 @@
 		var rectLeft,height;
 		var diff=tickList[tickList.length-2]-tickList[0];
 		var x1=-(svgOb.marginX-svgOb.paddingX1);
-		var y1=svgOb.yShift(tickList[tickList.length-2],tickList[0],diff);
+		var y1=svgOb.yShift(tickList[tickList.length-1],tickList[0],diff);
 		var x2=x1;
 		var y2=svgOb.yShift(tickList[0],tickList[0],diff);
 		var point=svgOb.coordinate(-(svgOb.marginX-svgOb.paddingX1),svgOb.yShift(tickList[tickList.length-2],tickList[0],diff));
@@ -1053,7 +1099,9 @@
 //-----event handling 
 	function disPatchMouserollOver(event,left){
 		var crossHairArray=document.getElementsByClassName("crossHair");	
+		left=Math.ceil(left);
 		CustomMouseRollOver.detail.x=Math.ceil(event.clientX-left);
+	
 		for(var i=0; i<crossHairArray.length; i++){
 		//	if(crossHairArray[i]!=event.target)
 				crossHairArray[i].dispatchEvent(CustomMouseRollOver);
@@ -1091,7 +1139,7 @@
 			tooltipText[i].setAttribute("visibility","hidden");
 
 			rectX=parseInt(chartAreaRect[i].getAttribute("x"));
-
+//rectX=chartAreaRect[i].getBoundingClientRect().left;
 			crossHair[i].setAttribute("x1",(x+ rectX));
 			crossHair[i].setAttribute("x2",(x+rectX));
 
@@ -1185,7 +1233,7 @@
 						tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString().substring(0,6);
 					}
 					else */
-						tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
+					tooltipText[i].innerHTML=((DataSet[i][index1][1] + xRatio* Math.abs(sX1-x1)).toFixed(fixedDecimal)).toString();
 
 					top=Math.floor(yValue);
 					left=x1;
@@ -1368,8 +1416,7 @@
 			if(column[i].getAttribute("x")==left){
 				column[i].setAttribute("style","fill:#B74947;");			
 			}
-		}
-console.log(DataSet);		
+		}		
 		for(var i=0; i<DataSet.length; i++){
 
 			for(var j=0; j<DataSet[i].length; j++){
