@@ -123,11 +123,13 @@
 
 .chartSpace{
 	background: #ffffff;
+	-webkit-user-select: none !important;
 }
 
 .column_Tooltip,.tooltip,.tooltipText,.column_tooltipText{
 	z-index:100;
 	shape-rendering:crispEdges;
+	-webkit-user-select: none !important;
 }
 
 .titles{
@@ -135,9 +137,10 @@
 	stroke-width:1;
 	stroke:#212121;
 	shape-rendering:crispEdges;
+	-webkit-user-select: none !important;
 }
 
 #selectSpace{
 	border:1px solid "#0288d1" !important;
-	
+	-webkit-user-select: none !important;
 }

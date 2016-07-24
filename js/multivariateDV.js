@@ -10,7 +10,7 @@
 	var noChartRow,chartCount=0;
 	var selectSpace;
 	var mousedown=false;
-
+	var mouseLeft, mouseTop;
 
 	window.CustomApi=function(selector){
 		this.dataMap=ob.chart.yMap;
@@ -199,7 +199,8 @@
 
 		selectSpace.style.left=x+"px";
 		selectSpace.style.top=y+"px";
-
+		mouseLeft=x;
+		mouseTop=y;
 	}
 
 	function resetLine(){
@@ -292,15 +293,21 @@
 		if(mousedown){
 			x=	parseInt(selectSpace.style.left);
 			y=parseInt(selectSpace.style.top);
-/*			if((x-event.clientX)<0){
-				selectSpace.style.width++;
-				selectSpace.style.left=Math.abs(x--)+"px";
+		if(mouseLeft>event.clientX){
 				
-			} else{*/
+				selectSpace.style.left=Math.abs(event.clientX)+"px";
+				selectSpace.style.width=Math.abs(mouseLeft- event.clientX)+"px";
+			} else{
+
 				selectSpace.style.width=Math.abs(x-event.clientX)+ "px";	
-			//}
-	//	selectSpace.style.top=y+"px";					
-			selectSpace.style.height=Math.abs(y- event.pageY)+ "px";
+			}
+			if(mouseTop>event.pageY){
+console.log(1);
+				selectSpace.style.top=Math.abs(event.pageY)+"px";
+				selectSpace.style.height=Math.abs(mouseTop- event.pageY)+"px";
+			} else{
+				selectSpace.style.height=Math.abs(y- event.pageY)+ "px";
+			}
 			if(type=="line"){
 				selectPlotPoint();
 			}
