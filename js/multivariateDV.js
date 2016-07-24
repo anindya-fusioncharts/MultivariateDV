@@ -302,7 +302,6 @@
 				selectSpace.style.width=Math.abs(x-event.clientX)+ "px";	
 			}
 			if(mouseTop>event.pageY){
-console.log(1);
 				selectSpace.style.top=Math.abs(event.pageY)+"px";
 				selectSpace.style.height=Math.abs(mouseTop- event.pageY)+"px";
 			} else{
@@ -1316,27 +1315,28 @@ console.log(1);
 					point.y-=3;
 					height=3;
 				}
-				
-				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop+point.y));					
-				left=column.getAttribute("x");
-				top=column.getAttribute("y");
-				
-				tooltip=tooltips(chartDraw,point,"column_Tooltip","column_tooltipText");
-
-
-				column.addEventListener("mousemove",function(event,left,top){return (function(){disPatchMouseOver(event,left,top);})}(event,left,top),false);
-
-				column.addEventListener("mouserollover",highlightColumn,false);
-				column.addEventListener("mouseout",unfocus,false);
-				
-
+				DataSet[i][k][2]=x;
+				DataSet[i][k][3]=point.y;
+				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop+point.y));								
 			}
+
+			tooltip=tooltips(chartDraw,point,"column_Tooltip","column_tooltipText");
+
 			chartDraw.svg.addEventListener("mousedown",function(event){drawSelectSpace(event,chartDraw,selector,"column");});
 			chartDraw.svg.addEventListener("mousemove",function(event){ResizeSelectSpace(event,chartDraw,selector,"column");});
 			chartDraw.svg.addEventListener("mouseup",function(event){DestroySelectSpace(event,chartDraw,selector,"column");});	
 			chartDraw.svg.addEventListener("mouseleave",function(event){DestroySelectSpace(event,chartDraw,selector,"column");});	
 		}
 
+		var column= document.getElementsByClassName("column");
+		for(var i=0; i< column.length; i++){
+			left=column[i].getAttribute("x");
+			top=column[i].getAttribute("y");
+			column[i].addEventListener("mousemove",function(event,left,top){return (function(){disPatchMouseOver(event,left,top);})}(event,left,top),false);
+			column[i].addEventListener("mouserollover",highlightColumn,false);
+			column[i].addEventListener("mouseout",unfocus,false);
+				
+		}	
 	}
 
 	function disPatchMouseOver(event,left,top){
@@ -1364,66 +1364,68 @@ console.log(1);
 		var rightLimit=ob.chart.width;
 		var leftLimit=ob.chart.marginX;
 		
-		for (var i=0,k=0; i< column.length;i++,k++){
-			
-
+		for (var i=0; i< column.length;i++){
 			if(column[i].getAttribute("x")==left){
-				column[i].setAttribute("style","fill:#B74947;");
-				tooltipText[k].innerHTML=column[i].getAttribute("value");				
-				top=Number(column[i].getAttribute("y"));
-
-				left=Number(column[i].getAttribute("x"));
-			
-				textLength=tooltipText[k].innerHTML.toString().length;
-				//textLength=6;
-				tooltipWidth=textLength*padding+2*padding;
-
-				tooltip[k].setAttribute("width",tooltipWidth.toString());
-				tooltip[k].setAttribute("height",tooltipHeight);
-
-	/*				if(DataSet[i][keyIndex][1].toString().length>=6){					
-						tooltipText[i].innerHTML=DataSet[i][keyIndex][1].toString().substring(0,6);
-					}
-					else  //*/
-					//tooltipText[k].innerHTML=DataSet[i][keyIndex][1].toString();
-
-				pointX=Number(left)+10;
-			
-				pointY=top-5;					
-				if((rightLimit -15) <(left+tooltipWidth)){
-					pointX=left-tooltipWidth;
-				}
-
-				if((leftLimit+20) > pointX){
-					pointX=left+leftLimit-pointX+15;
-				}
-
-				if((top+tooltipHeight)>(bottomLimit)){
-					pointY=top+tooltipHeight;
-					while((pointY+tooltipHeight-5)>=(bottomLimit)){
-						pointY--;					
-					}											
-				}
-
-				if((top)< (topLimit +5)){
-					pointY=top;
-					while(pointY<=topLimit+25){					
-						pointY++;
-					}
-				}				
-
-				tooltip[k].setAttribute("x",pointX);
-				
-				tooltipText[k].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
-
-				tooltip[k].setAttribute("y",pointY-10);
-				tooltipText[k].setAttribute("y",(pointY+7));
-
-				tooltip[k].setAttribute("visibility","visible");
-				tooltipText[k].setAttribute("visibility","visible");
+				column[i].setAttribute("style","fill:#B74947;");			
 			}
+		}
+console.log(DataSet);		
+		for(var i=0; i<DataSet.length; i++){
 
-		}	
+			for(var j=0; j<DataSet[i].length; j++){
+
+				if(Math.floor(DataSet[i][j][2])==Number(left)) {	
+					tooltipText[i].innerHTML=DataSet[i][j][1];
+
+					top=Number(DataSet[i][j][3]);
+					left=Number(DataSet[i][j][2]);
+
+					textLength=tooltipText[i].innerHTML.toString().length;
+					
+					tooltipWidth=textLength*padding+2*padding;
+
+					tooltip[i].setAttribute("width",tooltipWidth.toString());
+					tooltip[i].setAttribute("height",tooltipHeight);
+
+					pointX=Number(left)+10;
+				
+					pointY=top-5;		
+
+					if((rightLimit -15) <(left+tooltipWidth)){
+						pointX=left-tooltipWidth;
+					}
+
+					if((leftLimit+20) > pointX){
+						pointX=left+leftLimit-pointX+15;
+					}
+
+					if((top+tooltipHeight)>(bottomLimit)){
+						pointY=top+tooltipHeight;
+						while((pointY+tooltipHeight-5)>=(bottomLimit)){
+							pointY--;					
+						}											
+					}
+
+					if((top)< (topLimit +5)){
+						pointY=top;
+						while(pointY<=topLimit+25){					
+							pointY++;
+						}
+					}				
+
+					tooltip[i].setAttribute("x",pointX);
+					
+					tooltipText[i].setAttribute("x",(pointX+Math.floor((tooltipWidth-(textLength*padding))/2)));
+
+					tooltip[i].setAttribute("y",pointY-10);
+					tooltipText[i].setAttribute("y",(pointY+7));
+
+					tooltip[i].setAttribute("visibility","visible");
+					tooltipText[i].setAttribute("visibility","visible");
+
+				}
+			}
+		}				
 	}
 
 	function unfocus(event){
@@ -1432,7 +1434,8 @@ console.log(1);
 		var tooltipText= document.getElementsByClassName("column_tooltipText");		
 		for (var i=0,k=0; i< column.length;k++,i++){
 			column[i].setAttribute("style","fill:#3E72CC;");
-
+		}
+		for(var k=0;k<tooltip.length;k++){
 			tooltip[k].setAttribute("visibility","hidden");
 			tooltipText[k].setAttribute("visibility","hidden");
 		}
