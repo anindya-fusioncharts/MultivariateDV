@@ -92,12 +92,14 @@
 		retriveData();
 		selectDiv(selector);
 		tickPosDown=tickspoistion();
-		if(!tickPosDown){
+		
+		if(tickPosDown){
+			ob.chart.marginY=45;
+			ob.chart.topMarginY=75;
+		}else{
 			ob.chart.marginY=75;
 			ob.chart.topMarginY=45;							
-		}else{
-			ob.chart.marginY=45;
-			ob.chart.topMarginY=75;					
+					
 		}
 
 		drawChartHeading(selector);
@@ -114,7 +116,7 @@
 
 	function tickspoistion(){
 		noChartRow=Math.floor(100/(Math.ceil((ob.chart.width)/window.innerWidth*100)+8));
-		if(ob.chart.yMap%noChartRow==0)
+		if((ob.chart.yMap.length % noChartRow)==0)
 			return false;
 		else
 			return true;
@@ -223,7 +225,6 @@
 		var y1=parseInt(selectSpace.style.top);
 		var x2=x1+ parseInt(selectSpace.style.width);
 		var y2=y1+parseInt(selectSpace.style.height);
-		var pointSelect=[];
 		var maxX=-1,minX=99999;		
 		var x,y;		
 		var plotPoint=document.getElementsByClassName("plotPoint");
@@ -267,14 +268,16 @@
 			h=Number(column[i].getAttribute("height"));
 			w=Number(column[i].getAttribute("width"));
 
-			if(((y1>=(y-h) && y1<=y) || (y2>=(y-h) && y2<=y)) && ((x1>=x && x1<=(x+w)) || (x2>=x && x2<=(x+w))) ){
-				
+			if((x1 < x + w && x2 > x && y1 < y + h && y2 > y)){				
 				column[i].setAttribute("style","fill:#B74947");	
 				if(minX>=Number(column[i].getAttribute("x")))
 					minX=Number(column[i].getAttribute("x"));
 				if(maxX<Number(column[i].getAttribute("x")))
 					maxX=Number(column[i].getAttribute("x"));
+				k++
 			}
+			else
+				column[i].setAttribute("style","fill:#3E72CC");
 		}
 
 		for(var i=0; i< column.length; i++){
@@ -289,7 +292,14 @@
 		if(mousedown){
 			x=	parseInt(selectSpace.style.left);
 			y=parseInt(selectSpace.style.top);
-			selectSpace.style.width=Math.abs(x-event.clientX)+ "px";
+/*			if((x-event.clientX)<0){
+				selectSpace.style.width++;
+				selectSpace.style.left=Math.abs(x--)+"px";
+				
+			} else{*/
+				selectSpace.style.width=Math.abs(x-event.clientX)+ "px";	
+			//}
+	//	selectSpace.style.top=y+"px";					
 			selectSpace.style.height=Math.abs(y- event.pageY)+ "px";
 			if(type=="line"){
 				selectPlotPoint();
@@ -414,10 +424,9 @@
 				}
 				if(flag==0 && keys[j]!=ob.chart.xMap){
 					k++;
-					uniqueKeys[k]=keys[j];
-								
+					uniqueKeys[k]=keys[j];							
 				}				
-			}	
+			}				
 		}
 		ob.chart.yMap=uniqueKeys;	
 	}
@@ -740,13 +749,14 @@
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
 
+		tickPosDown=tickspoistion();
 			if(!tickPosDown){				
 				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
 					for(var i=0; i<ob.xAxisTicks.length; i++){
 						x1=this.xShift(ob.xAxisTicks[i].getTime(),ob.xAxisTicks[0].getTime(),xDiff);
-						y1=-(this.marginY-this.paddingY1);
+						y1=-(this.marginY-this.marginY);
 						x2=x1;
-						y2=-(this.marginY-this.paddingY0);				
+						y2=-(this.marginY-this.marginY+5);				
 						point=this.coordinate((x1+2),(y1-10));
 						this.drawLine(x1,y1,x2,y2,"xAxis");
 		//---------ticks text calculation
@@ -759,11 +769,10 @@
 								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
 							if(dateMax.getFullYear()!=dateMin.getFullYear())
 								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
-							this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
+							this.drawText(point,".35em",xTickStr,"xAxisTickText1","270");				
 				//		}
 					}
 				}
-					
 			}else{
 				//-------noChart
 
@@ -775,21 +784,20 @@
 							y1=(this.height-this.marginY-this.topMarginY-8);
 							x2=x1;
 							y2=(this.height-this.marginY-this.topMarginY);				
-							point=this.coordinate((x1+2),(y1+45));
+							point=this.coordinate((x1+2),(y1+10));
 							this.drawLine(x1,y1,x2,y2,"xAxis");
 
 			//---------ticks text calculation
-						//	if(i<=(noChartRow-1)){
-								if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-									xTickStr=ob.xAxisTicks[i].toString().split(' ')[4];
-								if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-									xTickStr=ob.xAxisTicks[i].toString().split(' ')[0];
-								if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-									xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
-								if(dateMax.getFullYear()!=dateMin.getFullYear())
-									xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
-								this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
-						//	}
+							if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[4];
+							if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[0];
+							if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2];
+							if(dateMax.getFullYear()!=dateMin.getFullYear())
+								xTickStr=ob.xAxisTicks[i].toString().split(' ')[1]+ "'"+ob.xAxisTicks[i].toString().split(' ')[2] + ","+ob.xAxisTicks[i].toString().split(' ')[3][2]+''+ob.xAxisTicks[i].toString().split(' ')[3][3];					
+							this.drawText(point,".35em",xTickStr,"xAxisTickText","270");				
+
 					}
 				noChartRow--;					
 			}
@@ -880,7 +888,17 @@
 			yPrev=y1;
 		} 
 //titles yaxis
-		if(!tickPosDown){
+		if(tickPosDown){
+			points= (this.marginX-2)+ ','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-40)+' '+(this.marginX-2)+','+(this.height-40)+' '+(this.marginX-2)+ ','+(this.height-20);
+			this.drawPolygon(points,"titles");
+			point={
+				x:this.width/2+this.marginX,
+				y:this.height-15
+			};
+
+			this.drawText(point,".5em",yAxisTitle,"yAxisTitle","0");
+
+		}else{
 			points= (this.marginX-2)+ ','+0+' '+(this.width+this.marginX)+','+0+' '+(this.width+this.marginX)+','+this.topMarginY+' '+(this.marginX-2)+','+this.topMarginY+' '+(this.marginX-2)+ ','+0;
 			this.drawPolygon(points,"titles");		
 
@@ -889,15 +907,8 @@
 				y:this.topMarginY-15
 			};
 			this.drawText(point,".5em",yAxisTitle,"yAxisTitle","0");		
-		}else{
-			points= (this.marginX-2)+ ','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-5)+' '+(this.width+this.marginX)+','+(this.height-40)+' '+(this.marginX-2)+','+(this.height-40)+' '+(this.marginX-2)+ ','+(this.height-20);
-			this.drawPolygon(points,"titles");
-			point={
-				x:this.width/2+this.marginX,
-				y:this.height-15
-			};
 
-			this.drawText(point,".5em",yAxisTitle,"yAxisTitle","0");		
+		
 		}
 	}
 
@@ -1280,7 +1291,7 @@
 			
 			svgLeft=parseInt(chartDraw.svg.getBoundingClientRect().left);
 			svgTop=parseInt(chartDraw.svg.getBoundingClientRect().top);
-				
+
 			for(var k=0;k<DataSet[i].length;k++){
 				yDiff=ob.yAxisTicks[i][ob.yAxisTicks[i].length-1]-ob.yAxisTicks[i][0];					
 				point=chartDraw.coordinate(chartDraw.xShift(DataSet[i][k][0],ob.xAxisTicks[0].getTime() ,xDiff), chartDraw.yShift(DataSet[i][k][1],ob.yAxisTicks[i][0],yDiff));		
@@ -1299,7 +1310,7 @@
 					height=3;
 				}
 				
-				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop-point.y));					
+				column=chartDraw.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop+point.y));					
 				left=column.getAttribute("x");
 				top=column.getAttribute("y");
 				
@@ -1421,3 +1432,7 @@
 	}
 
 })();
+
+window.onresize = function() {
+    location.reload();
+}

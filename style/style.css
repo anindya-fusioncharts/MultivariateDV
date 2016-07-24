@@ -38,11 +38,20 @@
 }
 .xAxisTickText{
 	fill: #607d8b !important;
+	text-anchor: start !important;
+	font-size:13px;
+	font-family: "Helvetica Neue", Arial;
+	shape-rendering:crispEdges;
+}
+
+.xAxisTickText1{
+	fill: #607d8b !important;
 	text-anchor: end !important;
 	font-size:13px;
 	font-family: "Helvetica Neue", Arial;
 	shape-rendering:crispEdges;
 }
+
 
 .crossHairLine{
 	stroke:red; 
@@ -70,7 +79,7 @@
 
 .xAxisTitleText{
 	fill: #212121 !important;
-	text-anchor: middle !important;
+	text-anchor: end!important;
 	font-size:20px;
 	font-family: "Helvetica Neue", Arial;
 	font-weight: bold;
