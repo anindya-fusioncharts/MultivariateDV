@@ -18,20 +18,60 @@
 		this.selector=selector;
 	}
 
-	CustomApi.prototype.Avg=function(func){
+/*	CustomApi.prototype.Avg=function(func){
 		ob.chart.yMap=avg(this.dataMap,this.data,func);
 		this.chartInstantiate();
 	}
-
-/*	function avg(dataMapList,dataList,func){
-		var dataMapListSize=dataMapList.length;
-		var avgList=avgList(dataList);
-		if(func=="ascending")
-			return Asc(dataMapList,avgList);
-		if(func=="descending")
-			return Desc(dataMapList,avgList);
-	} 
 */
+	function avg(dataMapList,dataList,func){
+		var dataMapListSize=dataMapList.length;
+		var mapList=dataMapList;
+		var avgList=avgListfunc(dataList);
+		if(func=="ascending")
+			mapList= Asc(dataMapList,avgList);
+		if(func=="descending")
+			mapList= Desc(dataMapList,avgList);
+console.log(mapList);		
+		return mapList;
+	} 
+
+	function Desc(dataMapList,avgList){
+
+		for(var i=0;i<avgList.length; i++){
+			for(var j=i+1; j<avgList.length;j++){
+				if(avgList[i]<avgList[j]){
+					temp=avgList[i];
+					avgList[i]=avgList[j];
+					avgList[j]=temp;
+
+					temp=dataMapList[i];
+					dataMapList[i]=dataMapList[j];
+					dataMapList[j]=temp;
+				}
+			}
+		}
+		return dataMapList;		
+	}
+
+
+
+	function Asc(dataMapList,avgList){
+
+		for(var i=0;i<avgList.length; i++){
+			for(var j=i+1; j<avgList.length;j++){
+				if(avgList[i]>avgList[j]){
+					temp=avgList[i];
+					avgList[i]=avgList[j];
+					avgList[j]=temp;
+
+					temp=dataMapList[i];
+					dataMapList[i]=dataMapList[j];
+					dataMapList[j]=temp;
+				}
+			}
+		}
+		return dataMapList;		
+	}
 
 	CustomApi.prototype.SortMax=function(func){
 		if(func== "ascending")
@@ -53,7 +93,7 @@
 			columncharts(this.selector,tickPosDown); 
 	}
 
-	function avgList(dataList){
+	function avgListfunc(dataList){
 		var avgList=[]
 		for(var i=0,sum=0; i< dataList.length; i++){
 			for(var j=0; j<dataList[i].length;sum+=dataList[i][j][1],j++);
@@ -481,7 +521,11 @@
 				}				
 			}				
 		}
-		ob.chart.yMap=uniqueKeys;	
+
+		if(user_input.chart.yAxisMap)
+			ob.chart.yMap=user_input.chart.yAxisMap;
+		else
+			ob.chart.yMap=uniqueKeys;	
 	}
 
 	function retriveData(){
@@ -567,6 +611,7 @@
 		var max,min;
 		var max_countDecimals;
 		var decimalFlag=1;
+		var diffFactor,fixedDecimal;
 
 		for(var i=0; i<ob.chart.yMap.length; i++){
 			max=undefined;
@@ -695,9 +740,19 @@
 					interval=10;
 			
 			} else{
+				if(min%1!=0){
+					diffFactor=Math.pow(10,-1*(min.toString().length-1));
+	
+					decimalFlag=-1;
+					index=3;
+				} else{
+					diffFactor=Math.pow(10,1*(min.toString().length-1));
+					index=1;
+					decimalFlag=1;
+				}				
+				computedMin=min-5*diffFactor;
+				computedMax=max+5*diffFactor;
 
-				computedMin=min-5;
-				computedMax=max+5;
 				if(computedMin<0)
 					negativeFlag=1;
 
@@ -706,7 +761,7 @@
 					computedMax-=computedMin;
 					computedMin=0;
 				}				
-				interval=0.5;
+				interval=0.5;	
 			}
 			
 
@@ -716,10 +771,18 @@
 			tickValue=ticks[0];
 			for(var j=1; tickValue<=(computedMax+negatedmin);j++){
 			ticks[j]=ticks[j-1]  + interval*Math.pow(10,decimalFlag*(computedMax.toString().length-index));		
-			tickValue=ticks[j];			
+			if(decimalFlag==-1){
+				fixedDecimal=(computedMin%1).toString().length-1;
+				ticks[j]= Number(ticks[j].toFixed(fixedDecimal));
+	
+			}
+			
+			tickValue=ticks[j];		
+
 			}	
-			ob.yAxisTicks[i]=ticks;					
-		}
+			ob.yAxisTicks[i]=ticks;	
+						
+		}	
 	}
 
 	var countDecimals = function(value) {
@@ -801,7 +864,7 @@
 		var dateMax=ob.xAxisTicks[ob.xAxisTicks.length-1];
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
-console.log(tickPosDown);
+
 			if(!tickPosDown){				
 				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
 					for(var i=0; i<ob.xAxisTicks.length; i++){
@@ -891,7 +954,7 @@ console.log(tickPosDown);
 			if( Math.abs(tickList[i])<1000){
 				point=this.coordinate(-(this.marginX-this.paddingTextX-8),(y1-4));
 				if(tickList[tickList.length-1]<1)
-					fixedDecimal=tickList[tickList.length-1].toString().length-2;
+					fixedDecimal=tickList[0].toString().length-2;
 				else
 					fixedDecimal=2;
 				if(tickList[i]==0)
