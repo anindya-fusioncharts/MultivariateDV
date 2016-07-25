@@ -22,14 +22,14 @@
 		ob.chart.yMap=avg(this.dataMap,this.data,func);
 		this.chartInstantiate();
 	}
-/*
-	function avg(dataMapList,dataList,func){
+
+/*	function avg(dataMapList,dataList,func){
 		var dataMapListSize=dataMapList.length;
 		var avgList=avgList(dataList);
 		if(func=="ascending")
-			return SortAsc(dataMapList,dataList);
+			return Asc(dataMapList,avgList);
 		if(func=="descending")
-			return SortDesc(dataMapList,dataList);
+			return Desc(dataMapList,avgList);
 	} 
 */
 
@@ -1018,13 +1018,13 @@ console.log(tickPosDown);
 		var rectLeft,height;
 		var diff=tickList[tickList.length-2]-tickList[0];
 		var x1=-(svgOb.marginX-svgOb.paddingX1);
-		var y1=svgOb.yShift(tickList[tickList.length-1],tickList[0],diff);
+		var y1=svgOb.yShift(tickList[tickList.length-2],tickList[0],diff);
 		var x2=x1;
 		var y2=svgOb.yShift(tickList[0],tickList[0],diff);
 		var point=svgOb.coordinate(-(svgOb.marginX-svgOb.paddingX1),svgOb.yShift(tickList[tickList.length-2],tickList[0],diff));
 		
 		var point1=svgOb.coordinate(-(svgOb.marginX-svgOb.paddingX1),svgOb.yShift(tickList[0],tickList[0],diff));
-		height= point1.y-point.y+25
+		height= point1.y-point.y+25;
 
 		var rect=svgOb.drawRect(point.x+5,point.y-15,classIn,height,svgOb.width,"stroke:#black; fill:transparent");
 		var crossHair=svgOb.drawLine(x1,y1,x2,y2,"crossHairLine");
