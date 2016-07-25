@@ -32,13 +32,12 @@
 			return SortDesc(dataMapList,dataList);
 	} 
 */
-	CustomApi.prototype.SortDescending=function(){
-		ob.chart.yMap=SortDesc(this.dataMap,this.data);	
-		this.chartInstantiate();
-	}
 
-	CustomApi.prototype.SortAscending=function(){
-		ob.chart.yMap=SortAsc(this.dataMap,this.data);	
+	CustomApi.prototype.SortMax=function(func){
+		if(func== "ascending")
+			ob.chart.yMap=SortAsc(this.dataMap,this.data);	
+		if(func=="descending")
+			ob.chart.yMap=SortDesc(this.dataMap,this.data);	
 		this.chartInstantiate();
 	}
 	
@@ -57,7 +56,7 @@
 	function avgList(dataList){
 		var avgList=[]
 		for(var i=0,sum=0; i< dataList.length; i++){
-			for(var j=0; j<dataList[i].length;sum+=dataList[i][j],j++);
+			for(var j=0; j<dataList[i].length;sum+=dataList[i][j][1],j++);
 			avgList[i]=sum/j;
 		}
 		return avgList;
@@ -802,7 +801,7 @@
 		var dateMax=ob.xAxisTicks[ob.xAxisTicks.length-1];
 		var dateMin=ob.xAxisTicks[0];
 		var xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();
-
+console.log(tickPosDown);
 			if(!tickPosDown){				
 				if((ob.chart.yMap.length - chartCount)<noChartRow && (ob.chart.yMap.length - chartCount)>= 0){
 					for(var i=0; i<ob.xAxisTicks.length; i++){
@@ -1319,7 +1318,7 @@
 
 			chartDraw = new Svg(selector,ob.chart.width,ob.chart.height,"chartSpace");						
 			chartDraw.drawYaxis(ob.yAxisTicks[i],ob.chart.yMap[i],tickPosDown);			
-			chartDraw.drawXaxis(i,ob.xAxisTicks,ob.chart.xMap,tickPosDown);		
+			chartDraw.drawXaxis(ob.xAxisTicks,ob.chart.xMap,tickPosDown);		
 
 			xDiff=ob.xAxisTicks[ob.xAxisTicks.length-1].getTime()-ob.xAxisTicks[0].getTime();							
 
