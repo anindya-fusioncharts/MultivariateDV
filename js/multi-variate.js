@@ -91,6 +91,31 @@ DrawComponents.prototype.drawPolygon=function(points,classIn){
 	this.svg.appendChild(polyline);
 	return polyline;
 }
+
+DrawComponents.prototype.drawPath=function(_path,classIn){
+	var path=document.createElementNS("http://www.w3.org/2000/svg","path");
+	path.setAttribute("d",_path);
+	path.setAttribute("class",classIn);
+	path.setAttribute("style","stroke:#1e7ac9; stroke-width:3; fill:transparent");
+
+	this.svg.appendChild(path);
+	return path;
+}
+
+DrawComponents.prototype.drawCircle= function(point,r,classIn,Ydata){
+	var circle=document.createElementNS("http://www.w3.org/2000/svg", "circle");	
+	circle.setAttribute("cx",point.x);
+	circle.setAttribute("cy",point.y);
+	circle.setAttribute("r",r);
+	circle.setAttribute("fill","#ffffff");
+	circle.setAttribute("Ydata",Ydata);
+	circle.setAttribute("class",classIn);
+	circle.style.zIndex=1000;
+	this.svg.appendChild(circle);	
+	return circle;
+}
+
+
 /*------drawcomponent end-------*/
 
 /*------axis start----------*/
@@ -336,12 +361,55 @@ XAxis.prototype.draw=function(){
 }
 /*------axis end----------*/
 
+/*---------chart body start---------*/
+function chart(drawComponents,parsedJSON){
+	this.drawComponents=drawComponents;
+	this.parsedJSON=parsedJSON;
+
+}
+
+function LineChart(drawComponents,parsedJSON,index){
+	var path;
+	var point={};
+	var x,y;
+	var xDiff,yDiff;
+	var paths;
+	var circle=[];
+	paths='M';
+
+	chart.call(this,drawComponents,parsedJSON);
+
+	xDiff=this.parsedJSON.TickList.xAxis[this.parsedJSON.TickList.xAxis.length-1].getTime()-this.parsedJSON.TickList.xAxis[0].getTime();
+	yDiff=this.parsedJSON.TickList.yAxis[index][this.parsedJSON.TickList.yAxis[index].length-1]-this.parsedJSON.TickList.yAxis[index][0];
+	for(var i=0; i< this.parsedJSON.data[index].length; i++){
+		x=this.parsedJSON.data[index][i][0];
+		y=this.parsedJSON.data[index][i][1];
+		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],xDiff);
+		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[index][0],yDiff);
+		point=this.drawComponents.coordinate(point.x,point.y);
+		paths=paths+point.x+' '+point.y+', ';
+	}
+	path=this,drawComponents.drawPath(paths,"path");
+
+	for(var i=0; i< this.parsedJSON.data[index].length; i++){
+		x=this.parsedJSON.data[index][i][0];
+		y=this.parsedJSON.data[index][i][1];
+		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],xDiff);
+		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[index][0],yDiff);
+		point=this.drawComponents.coordinate(point.x,point.y);
+		circle[i]=this.drawComponents.drawCircle(point,4,"plotPoint",y)
+	}
+
+
+}
+/*---------chart body end------------*/
 /*--------Engine start---------*/
 function Engine(rawJSON,selector){
 	var noChart;
 	var tickPosDown;
 	var _drawComponents;
 	var _yAxis,_xAxis;
+	var _lineChart;
 	this.selector=selector;
 	this.parsedJSON=parseJSON(rawJSON);
 
@@ -367,8 +435,8 @@ function Engine(rawJSON,selector){
 		_yAxis=new YAxis(this.parsedJSON,_drawComponents,i,tickPosDown);
 		_yAxis.draw();
 		_xAxis=new XAxis(this.parsedJSON,_drawComponents,i+1,tickPosDown);
-		_xAxis.draw();
-		
+		_xAxis.draw();	
+		_lineChart=new LineChart(_drawComponents,this.parsedJSON,i);
 	}
 }
 
@@ -407,7 +475,8 @@ function parseJSON(rawJSON){
 	internalDataStructure.chart.marginX=80;
 	internalDataStructure.chart.marginY=20;
 	internalDataStructure.chart.topMarginY=60;
-	internalDataStructure.chart.xMap=rawJSON.chart.xAxisMap;	
+	internalDataStructure.chart.xMap=rawJSON.chart.xAxisMap;
+	internalDataStructure.chart.type=rawJSON.chart.type;	
 
 	for(var i=0,k=0; i<rawJSON.data.length; i++){
 		keys=Object.keys(rawJSON.data[i]);

@@ -9,10 +9,10 @@
 
 }
 
-.graph{
+.path{
 	stroke: #1e7ac9 !important;
-	stroke-width:3;
-	fill:transparent;
+	stroke-width:4 !important;
+	fill:transparent !important;
 	z-index: -1;	
 	
 }
@@ -121,7 +121,7 @@
     shape-rendering:crispEdges;
 }
 
-.chartSpace{
+.chart{
 	background: #ffffff;
 	-webkit-user-select: none !important;
 }
