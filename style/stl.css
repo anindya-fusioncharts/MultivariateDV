@@ -1,0 +1,152 @@
+
+.plotPoint{
+	border-radius: 40px !important;
+
+	stroke: #1e7ac9 !important;
+	stroke-width:3;
+	z-index: 200 !important;
+	
+
+}
+
+.path{
+	stroke: #1e7ac9 !important;
+	stroke-width:4 !important;
+	fill:transparent !important;
+	z-index: -1;	
+	
+}
+
+.yAxis, .yAxisTick {
+	stroke: #727272 !important;
+	z-index: -2 !important;
+	shape-rendering:crispEdges;
+}
+
+.xAxis{
+	stroke: #727272 !important;
+	z-index: -2 !important;
+	shape-rendering:crispEdges;
+}
+
+.yAxisTickText{
+	fill: #607d8b !important;
+	text-anchor: end !important;
+	font-size:13px;
+	font-family: "Helvetica Neue", Arial;
+	shape-rendering:crispEdges;
+}
+.xAxisTickText{
+	fill: #607d8b !important;
+	text-anchor: start !important;
+	font-size:13px;
+	font-family: "Helvetica Neue", Arial;
+	shape-rendering:crispEdges;
+}
+
+.xAxisTickText1{
+	fill: #607d8b !important;
+	text-anchor: end !important;
+	font-size:13px;
+	font-family: "Helvetica Neue", Arial;
+	shape-rendering:crispEdges;
+}
+
+
+.HairLine{
+	stroke:red; 
+	stroke-width:1; 
+	z-index: -2 !important;
+	stroke-dasharray:2,2;	
+	shape-rendering:crispEdges;
+}
+
+.Caption{
+	fill: black !important;
+	text-anchor: middle !important;
+	font-size:20px;
+	font-family: "Tahoma";
+	font-weight: bold;
+}
+
+.subCaption{
+	fill: black !important;
+	text-anchor: middle !important;
+	font-size:14px;
+	font-family: "Tahoma";
+	font-weight: bold;
+}
+
+.xAxisTitleText{
+	fill: #212121 !important;
+	text-anchor: end!important;
+	font-size:20px;
+	font-family: "Helvetica Neue", Arial;
+	font-weight: bold;
+
+}
+.yAxisTitle{
+	fill: #033057 !important;
+	text-anchor: middle !important;
+	font-size:20px;
+	font-family: "Helvetica Neue", Arial;
+	font-weight: bold;
+
+}
+.divDash1{
+	/*fill:#ffffff !important;*/
+	stroke-width:1;
+	stroke:#212121;
+	fill:#e7e7e7;
+	shape-rendering:crispEdges;
+	/*stroke-dasharray:5,5;*/
+}
+.divDash2{
+	fill:#ffffff !important;
+	stroke-width:1;
+	stroke:#212121;
+	shape-rendering:crispEdges;
+	/*stroke-dasharray:5,5;*/
+}
+
+.plotTooltip{
+    width: 80px !important;
+    background-color: black !important;
+    fill: #ffffff !important;
+    text-align: center !important;
+    opacity:0.65 !important;
+    border-radius: 6px !important;
+    fill:white !important;
+    z-index: 1;
+    shape-rendering:crispEdges;
+}
+
+.chart{
+	background: #ffffff;
+	-webkit-user-select: none !important;
+}
+
+.column_Tooltip,.tooltip,.tooltipText,.column_tooltipText{
+	z-index:100;
+	shape-rendering:crispEdges;
+	-webkit-user-select: none !important;
+}
+
+.titles{
+	fill:#f5fafe !important;
+	stroke-width:1;
+	stroke:#212121;
+	shape-rendering:crispEdges;
+	-webkit-user-select: none !important;
+}
+
+#selectSpace{
+	border:1px solid "#0288d1" !important;
+	-webkit-user-select: none !important;
+}
+
+
+.chartArea{
+	stroke:#black !important; 
+	fill:transparent !important;
+}

@@ -2,7 +2,7 @@
 /*---------------render start--------------*/
 window.render=function(rawJSON,selector){
 	var chartRenderEngine= new Engine(rawJSON,selector);
-
+	chartRenderEngine.crossHairHandler();
 }
 
 /*----------render end----------------------------*/
@@ -33,7 +33,7 @@ function DrawComponents(selector,width,height,marginX,marginY,topMarginY){
 	this.svg.setAttribute("width", this.width);
 
 	percntWidth=Math.ceil((this.width)/window.innerWidth*100);
-	percntWidth=percntWidth+0.3*percntWidth;
+	percntWidth=percntWidth+0.32*percntWidth;
 	this.svg.setAttribute("style","width:"+percntWidth+"%;");
 
 	this.rootElement.appendChild(this.svg);	
@@ -102,12 +102,13 @@ DrawComponents.prototype.drawPath=function(_path,classIn){
 	return path;
 }
 
-DrawComponents.prototype.drawCircle= function(point,r,classIn,Ydata){
+DrawComponents.prototype.drawCircle= function(point,r,classIn,Xdata,Ydata){
 	var circle=document.createElementNS("http://www.w3.org/2000/svg", "circle");	
 	circle.setAttribute("cx",point.x);
 	circle.setAttribute("cy",point.y);
 	circle.setAttribute("r",r);
 	circle.setAttribute("fill","#ffffff");
+	circle.setAttribute("Xdata",Xdata);
 	circle.setAttribute("Ydata",Ydata);
 	circle.setAttribute("class",classIn);
 	circle.style.zIndex=1000;
@@ -115,9 +116,43 @@ DrawComponents.prototype.drawCircle= function(point,r,classIn,Ydata){
 	return circle;
 }
 
+DrawComponents.prototype.drawRect=function(x,y,classIn,h,w,style,value,absoluteX,absoluteY){
+	var rect=document.createElementNS("http://www.w3.org/2000/svg","rect");
+	style=style||"stroke:#3E72CC;fill:#3E72CC";
+	value=value||"";
+	rect.setAttribute("x",x);
+	rect.setAttribute("y",y);
+	rect.setAttribute("height",h);
+	rect.setAttribute("width",w);
+	rect.setAttribute("style",style);
+	rect.setAttribute("class",classIn);
+	rect.setAttribute("value",value);
+	rect.setAttribute("absoluteX",absoluteX);
+	rect.setAttribute("absoluteY",absoluteY);		
+	this.svg.appendChild(rect);
+	return rect;
+}
 
 /*------drawcomponent end-------*/
+/*--------tooltip start------------*/
+function Tooltip(drawComponents,point,class_Tooltip,class_TooltipText){
+	this.drawComponents=drawComponents;
+	this.point=point;
+	var tooltip=this.drawComponents.drawRect(point.x+5,point.y,class_Tooltip,10,0,"stroke:#8D6D60 ;stroke-width:1; fill:#FDD9CB");		
+	var tooltipText=this.drawComponents.drawText(point,"","",class_TooltipText,0);
 
+	tooltipText.setAttribute("style",'fill: #8D6D60');		
+	tooltipText.setAttribute("class",class_TooltipText);
+
+	this.drawComponents.svg.insertBefore(tooltip,tooltipText);
+	return {
+		"rect":tooltip,
+		"text":tooltipText
+	}
+}
+
+
+/*---------------tooltip end--------------*/
 /*------axis start----------*/
 
 function Axis(drawComponents){
@@ -245,10 +280,10 @@ YAxis.prototype.title=function(tickPosDown,title){
 	var point3;
 
 	if(tickPosDown){
-		point0=this.drawcomponents.coordinate((0),(-this.drawcomponents.marginY+3));
-		point1=this.drawcomponents.coordinate((this.drawcomponents.width),(-this.drawcomponents.marginY+3));
-		point2=this.drawcomponents.coordinate((this.drawcomponents.width),(-this.drawcomponents.marginY+40));
-		point3=this.drawcomponents.coordinate((0),(-this.drawcomponents.marginY+40));
+		point0=this.drawcomponents.coordinate((0),(-this.drawcomponents.marginY+2));
+		point1=this.drawcomponents.coordinate((this.drawcomponents.width),(-this.drawcomponents.marginY+2));
+		point2=this.drawcomponents.coordinate((this.drawcomponents.width),(-this.drawcomponents.marginY+37));
+		point3=this.drawcomponents.coordinate((0),(-this.drawcomponents.marginY+37));
 
 		points= point0.x+ ','+point0.y+' '+point1.x+','+point1.y +' '+point2.x+','+point2.y+' '+point3.x+','+point3.y+' '+point0.x+ ','+point0.y;
 		this.drawcomponents.drawPolygon(points,"titles");
@@ -369,37 +404,158 @@ function chart(drawComponents,parsedJSON){
 }
 
 function LineChart(drawComponents,parsedJSON,index){
-	var path;
-	var point={};
-	var x,y;
-	var xDiff,yDiff;
-	var paths;
-	var circle=[];
-	paths='M';
-
+	this.index=index;		
 	chart.call(this,drawComponents,parsedJSON);
+	this.xDiff=this.parsedJSON.TickList.xAxis[this.parsedJSON.TickList.xAxis.length-1].getTime()-this.parsedJSON.TickList.xAxis[0].getTime();
+	this.yDiff=this.parsedJSON.TickList.yAxis[this.index][this.parsedJSON.TickList.yAxis[index].length-1]-this.parsedJSON.TickList.yAxis[this.index][0];	
+}
 
-	xDiff=this.parsedJSON.TickList.xAxis[this.parsedJSON.TickList.xAxis.length-1].getTime()-this.parsedJSON.TickList.xAxis[0].getTime();
-	yDiff=this.parsedJSON.TickList.yAxis[index][this.parsedJSON.TickList.yAxis[index].length-1]-this.parsedJSON.TickList.yAxis[index][0];
-	for(var i=0; i< this.parsedJSON.data[index].length; i++){
-		x=this.parsedJSON.data[index][i][0];
-		y=this.parsedJSON.data[index][i][1];
-		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],xDiff);
-		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[index][0],yDiff);
+LineChart.prototype.path=function(){
+	var x,y;
+	var point={};
+	var path;
+	var paths;
+
+	paths='M';
+	for(var i=0; i< this.parsedJSON.data[this.index].length; i++){
+		x=this.parsedJSON.data[this.index][i][0];
+		y=this.parsedJSON.data[this.index][i][1];
+		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],this.xDiff);
+		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[this.index][0],this.yDiff);
 		point=this.drawComponents.coordinate(point.x,point.y);
 		paths=paths+point.x+' '+point.y+', ';
 	}
-	path=this,drawComponents.drawPath(paths,"path");
+	path=this.drawComponents.drawPath(paths,"path");
+	return path;	
+}
 
-	for(var i=0; i< this.parsedJSON.data[index].length; i++){
-		x=this.parsedJSON.data[index][i][0];
-		y=this.parsedJSON.data[index][i][1];
-		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],xDiff);
-		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[index][0],yDiff);
+LineChart.prototype.anchor=function(){
+	var x,y;
+	var point={};
+	var anchor=[];
+	for(var i=0; i< this.parsedJSON.data[this.index].length; i++){
+		x=this.parsedJSON.data[this.index][i][0];
+		y=this.parsedJSON.data[this.index][i][1];
+		point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],this.xDiff);
+		point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[this.index][0],this.yDiff);
 		point=this.drawComponents.coordinate(point.x,point.y);
-		circle[i]=this.drawComponents.drawCircle(point,4,"plotPoint",y)
+		anchor[i]=this.drawComponents.drawCircle(point,5,"plotPoint",x,y)
 	}
+	return anchor;	
+}
 
+LineChart.prototype.chartArea=function(){
+	var point={};
+	var point1={};
+	var x,y,h,w;
+	var _chartArea;
+	var left;
+	x=this.parsedJSON.TickList.xAxis[0].getTime();
+	y=this.parsedJSON.TickList.yAxis[this.index][this.parsedJSON.TickList.yAxis[this.index].length-1];	
+	point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],this.xDiff);
+	point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[this.index][0],this.yDiff);
+	point=this.drawComponents.coordinate(point.x,point.y+3);
+
+	w=Math.abs(this.parsedJSON.chart.width);
+	h=Math.abs(this.parsedJSON.chart.height-this.parsedJSON.chart.topMarginY-this.parsedJSON.chart.marginY);
+			
+	_chartArea=this.drawComponents.drawRect(point.x,point.y,"chartArea",h,w,"stroke:#black; fill:transparent");
+	
+	left=_chartArea.getBoundingClientRect().left;
+
+	_chartArea.addEventListener("mousemove",function(){
+			CustomMouseRollOver.detail.x=Math.ceil(event.clientX-left);
+			_chartArea.dispatchEvent(CustomMouseRollOver);
+		});
+
+	return _chartArea;
+}
+
+LineChart.prototype.hairLine=function(){
+	var point={};
+	var point1={};
+	var x,y,h,w;
+	var _hairLine;
+
+	x=this.parsedJSON.TickList.xAxis[0].getTime();
+	y=this.parsedJSON.TickList.yAxis[this.index][this.parsedJSON.TickList.yAxis[this.index].length-1];	
+	point.x=this.drawComponents.xShift(x,this.parsedJSON.TickList.xAxis[0],this.xDiff);
+	point.y=this.drawComponents.yShift(y,this.parsedJSON.TickList.yAxis[this.index][0],this.yDiff);
+	point=this.drawComponents.coordinate(point.x,point.y);
+
+	point1.x=point.x;
+	point1.y=point.y+Math.abs(this.parsedJSON.chart.height-this.parsedJSON.chart.topMarginY-this.parsedJSON.chart.marginY)-6;
+	_hairLine=this.drawComponents.drawLine(point,point1,"HairLine");
+	return _hairLine;
+}
+
+LineChart.prototype.crossHair=function(){
+	var _chartArea,_hairLine;
+	_chartArea=this.chartArea();	
+	_hairLine=this.hairLine();
+	_hairLine.setAttribute("visibility","hidden");
+	return {
+		"_chartArea":_chartArea,
+		"_hairLine":_hairLine
+	};
+}
+
+function Column(drawComponents,parsedJSON,index){
+	this.index=index;		
+	chart.call(this,drawComponents,parsedJSON);
+	this.xDiff=this.parsedJSON.TickList.xAxis[this.parsedJSON.TickList.xAxis.length-1].getTime()-this.parsedJSON.TickList.xAxis[0].getTime();
+	this.yDiff=this.parsedJSON.TickList.yAxis[this.index][this.parsedJSON.TickList.yAxis[index].length-1]-this.parsedJSON.TickList.yAxis[this.index][0];		
+}
+
+Column.prototype.col=function(){
+	var svgLeft,svgTop;
+	var columnMinDiff;
+
+	pointLowerLeftLimit=this.drawComponents.coordinate(0,0);
+
+	pointRightLimit=this.drawComponents.xShift(this.parsedJSON.TickList.xAxis[this.parsedJSON.TickList.xAxis.length-1].getTime(),this.parsedJSON.TickList.xAxis[0].getTime(),this.xDiff)+chartDraw.marginX;
+	
+	if(i==0){
+
+		for(var k=1;k<this.parsedJSON.data[this.index].length;k++){
+			if(count<2){
+				columnMinDiff=Math.abs(columnMinDiff-this.drawComponents.xShift(this.parsedJSON.data[this.index][k-1][0],this.parsedJSON.TickList.xAxis[0].getTime() ,this.xDiff));
+				count++;
+			} else{
+				columnDiff=Math.abs(this.drawComponents.xShift(this.parsedJSON.data[this.index][k-1][0],this.parsedJSON.TickList.xAxis[0].getTime() ,xDiff)-chartDraw.xShift(this.parsedJSON.data[this.index][k][0],this.parsedJSON.TickList.xAxis[0].getTime() ,this.xDiff))
+				if(columnMinDiff>columnDiff){
+					columnMinDiff=columnDiff;	
+				}
+			}								
+		}	
+
+		columnMinDiff= Math.floor(columnMinDiff/2.2);				
+	}	
+	
+	svgLeft=parseInt(this.drawComponents.svg.getBoundingClientRect().left);
+	svgTop=parseInt(this.drawComponents.svg.getBoundingClientRect().top);
+
+	for(var k=0;k<this.parsedJSON.data[this.index].length;k++){
+		yDiff=this.parsedJSON.TickList.xAxis[this.index][this.parsedJSON.TickList.yAxis[this.index].length-1]-this.parsedJSON.TickList.yAxis[this.index][0];					
+		point=this.drawComponents.coordinate(this.drawComponents.xShift(this.parsedJSON.data[this.index][k][0],this.parsedJSON.TickList.xAxis[0].getTime(),this.xDiff), this.drawComponents.yShift(this.parsedJSON.data[this.index][k][1],this.parsedJSON.TickList.yAxis[this.index][0],yDiff));		
+
+		width=(columnMinDiff%2==0)?columnMinDiff:(columnMinDiff-1);
+		x=point.x-width/2;
+		if(x<pointLowerLeftLimit.x){
+			x=x+Math.abs(x-pointLowerLeftLimit.x)-0.5;
+		}			
+		if((x+width)>pointRightLimit)
+			x=x-Math.abs(x+width-pointRightLimit);
+
+		height=Math.abs(point.y-pointLowerLeftLimit.y);	
+		if(height==0){
+			point.y-=3;
+			height=3;
+		}
+		DataSet[this.index][k][2]=x;
+		DataSet[this.index][k][3]=point.y;
+		column=this.drawComponents.drawRect(x,point.y,"column",height,width,"",DataSet[i][k][1],(svgLeft+x),(svgTop+point.y));								
+	}
 
 }
 /*---------chart body end------------*/
@@ -409,7 +565,11 @@ function Engine(rawJSON,selector){
 	var tickPosDown;
 	var _drawComponents;
 	var _yAxis,_xAxis;
-	var _lineChart;
+	var _lineChart,_columnChart;
+	var point0={};
+	this._crossHair=[],
+	this._anchors=[];
+	this._tooltip=[];
 	this.selector=selector;
 	this.parsedJSON=parseJSON(rawJSON);
 
@@ -430,22 +590,82 @@ function Engine(rawJSON,selector){
 		this.parsedJSON.chart.topMarginY=45;										
 	}
 	noChart=this.parsedJSON.chart.yMap.length;
-	for(var i=0; i<noChart; i++){		
+	for(var i=0; i<noChart; i++){	
+		this._anchors[i]=[];	
 		_drawComponents= new DrawComponents(selector,this.parsedJSON.chart.width,this.parsedJSON.chart.height,this.parsedJSON.chart.marginX,this.parsedJSON.chart.marginY,this.parsedJSON.chart.topMarginY);
+		
 		_yAxis=new YAxis(this.parsedJSON,_drawComponents,i,tickPosDown);
 		_yAxis.draw();
+
 		_xAxis=new XAxis(this.parsedJSON,_drawComponents,i+1,tickPosDown);
 		_xAxis.draw();	
-		_lineChart=new LineChart(_drawComponents,this.parsedJSON,i);
+		if(this.parsedJSON.chart.type=='line'){
+			_lineChart=new LineChart(_drawComponents,this.parsedJSON,i);
+			_lineChart.path();
+			this._anchors[i]=_lineChart.anchor();
+			this._crossHair[i]=_lineChart.crossHair();
+		}else{
+			_columnChart=new Column(_drawComponents,this.parsedJSON,i);
+		}
+
+		point0.x=0;
+		point0.y=0;
+		this._tooltip[i]=new Tooltip(_drawComponents,point0,"tooltip","tooltipText");
 	}
 }
 
-/*--------Engine end-------------*/
+Engine.prototype.crossHairHandler=function(){
+	var _this=this;
+	var noChart=this.parsedJSON.chart.yMap.length;
+	for(var i=0; i<noChart; i++){
+		this._crossHair[i]._chartArea.addEventListener("mouserollover",syncCrossHair.bind(_this));		
+	}	
+}
 
+/*--------Engine end-------------*/
+/*----------Event Handling Functions start------------*/
+function syncCrossHair(e){
+	var cx;
+	var adjustingValue;
+	var x;
+	var keyIndex;
+	var sX1,sx2,sY1,sY2;
+	adjustingValue=this.parsedJSON.chart.marginX;
+	x=e.detail.x+adjustingValue;
+	for(var i=0; i<this._crossHair.length; i++){
+		this._crossHair[i]._hairLine.setAttribute("visibility","visible");
+		this._crossHair[i]._hairLine.setAttribute("x1",x);
+		this._crossHair[i]._hairLine.setAttribute("x2",x);
+		for(var j=0; j< this._anchors[i].length; j++){
+			cx=this._anchors[i][j].getAttribute("cx");
+			if((x-5)<=cx && (x+5)>=cx){
+				this._anchors[i][j].setAttribute("r",7);
+				this._anchors[i][j].setAttribute("style","fill:#f44336")
+				this._tooltip[i].text.innerHTML=this._anchors[i][j].getAttribute("Ydata");
+			}else{
+				this._anchors[i][j].setAttribute("r",5);
+				this._anchors[i][j].setAttribute("style","fill:#ffffff");
+				if(j>0){
+					if(x>=this._anchors[i][j-1].setAttribute("cx") && x<=this._anchors[i][j].setAttribute("cx")){
+
+					}
+				}
+			}
+		}
+		this._tooltip[i].rect.setAttribute("visibility","hidden");
+		this._tooltip[i].text.setAttribute("visibility","hidden");
+
+
+	}
+}
+/*----------Event Handling Functions stop------------
 /*-------global functions and variables start-----------*/
 var noChartRow;
 function tickspoistion(parsedJSON){
-	noChartRow=Math.floor(100/(Math.ceil((parsedJSON.chart.width)/window.innerWidth*100)+8));
+	var percntWidth;
+	percntWidth=Math.ceil((parsedJSON.chart.width)/window.innerWidth*100);
+	percntWidth=percntWidth+0.32*percntWidth;
+	noChartRow=Math.floor(100/percntWidth);	
 	if((parsedJSON.chart.yMap.length % noChartRow)==0)
 		return false;
 	else
@@ -736,8 +956,33 @@ function xRangeTicks(parsedJSON){
 	return ticks;		
 }
 
-/*-------global functions end----------------*/
+function bSearch(data,key){
+	var minIndex = 0;
+    var maxIndex = data.length - 1;
+    var currentIndex;
+    var currentElement;
+ 	
+    while (minIndex <= maxIndex) {
+        currentIndex = Math.floor((minIndex + maxIndex) / 2);
+        currentElement = data[currentIndex][2];
 
+        if ((currentElement+5) < key) {
+            minIndex = currentIndex + 1;
+        }
+        else if ((currentElement-5) > key) {
+            maxIndex = currentIndex - 1;
+        }
+        else {
+            return currentIndex;
+        }
+    }	 
+    return -1*(currentIndex+1);
+}
+
+/*-------global functions end----------------*/
+/*---------custom event listener start--------------*/
+var CustomMouseRollOver=new CustomEvent("mouserollover",{"detail":{x:"",y:"",left:""}});
+/*-----------custom event listener stop----------------*/
 /*---------on window resize-----------*/
 window.onresize = function() {
     location.reload();
