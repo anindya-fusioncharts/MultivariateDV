@@ -224,9 +224,7 @@
 			chartDraw.svg.addEventListener("mouseup",function(event){DestroySelectSpace(event,chartDraw,selector,"line");});	
 			chartDraw.svg.addEventListener("mouseleave",function(event){DestroySelectSpace(event,chartDraw,selector,"line");});	
 
-		}
-
-			
+		}		
 	}
 	
 	function drawSelectSpace(event,svgOb,selector,type){
