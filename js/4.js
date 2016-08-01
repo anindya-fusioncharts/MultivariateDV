@@ -44,6 +44,8 @@ Engine.prototype.render=function(){
 		this.parsedJSON.chart.topMarginY=45;										
 	}
 	selectDiv(this.selector);
+
+	drawChartHeading(this.selector,this.parsedJSON);
 	noChart=this.parsedJSON.chart.yMap.length;
 	for(var i=0; i<noChart; i++){	
 		this._anchors[i]=[];	

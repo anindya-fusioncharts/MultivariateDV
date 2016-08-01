@@ -338,6 +338,26 @@ function bSearch(data,key){
     return -1*(currentIndex+1);
 }
 
+function drawChartHeading(selector,parsedJSON) {
+	var chartHeadings=new DrawComponents(selector,window.innerWidth-200,50,parsedJSON.chart.marginX,parsedJSON.chart.marginY,0,"Heading");
+	var point;
+	point={
+		x: chartHeadings.width- Math.floor(chartHeadings.width/2 -chartHeadings.marginX),
+		y:50-30
+	};
+	chartHeadings.drawText(point,".35em",parsedJSON.chart.caption,"Caption");	
+
+	point={
+		x: chartHeadings.width- Math.floor(chartHeadings.width/2 -chartHeadings.marginX),
+		y:50-10
+	};
+	chartHeadings.drawText(point,".35em",parsedJSON.chart.subCaption,"subCaption");	
+
+	var br=document.createElement("br");
+	document.getElementById(selector).appendChild(br);		
+}
+
+
 /*-------global functions end----------------*/
 /*---------custom event listener start--------------*/
 var CustomMouseRollOver=new CustomEvent("mouserollover",{"detail":{x:"",y:"",left:""}});
