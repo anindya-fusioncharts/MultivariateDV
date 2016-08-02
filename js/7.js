@@ -23,8 +23,8 @@ function DrawComponents(selector,width,height,marginX,marginY,topMarginY){
 	this.svg.setAttribute("height", this.height);			
 	this.svg.setAttribute("width", this.width);
 
-	percntWidth=Math.ceil((this.width)/window.innerWidth*100);
-	percntWidth=percntWidth+0.32*percntWidth;
+	percntWidth=Math.ceil((this.width)/(window.innerWidth)*100);
+	percntWidth=percntWidth+0.35*percntWidth+0.05*percntWidth;
 	this.svg.setAttribute("style","width:"+percntWidth+"%;");
 
 	this.rootElement.appendChild(this.svg);	
