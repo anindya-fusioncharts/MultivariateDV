@@ -1,0 +1,311 @@
+{
+	"chart":{
+		"type":"crosstab",
+		"titles":"Sum of Sales",
+		"tab_titles":"region",		
+		"category_name":"Product Type",
+		"sub_category_name":"Product",
+		"maxProfitColor":"#00000",
+		"minProfitColor":"#E0E0E0",
+		"maxLossColor":"#B71C1C",
+		"minLossColor":"#E57373",
+		"numberOfColorVarient":4,
+		"numberprefix": "$"
+	},
+	"data":[
+		{
+			"category":"Coffee",
+			"sub_category":"Amaretto",
+			"region":"Central",
+			"Sum of Profit":5105,
+			"Sum of Sales":14011
+		},	
+		{
+			"category":"Coffee",
+			"sub_category":"Amaretto",							
+			"region":"East",
+			"Sum of Profit":1009,
+			"Sum of Sales":2993
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Amaretto",	
+			"region":"West",
+			"Sum of Profit":-1225,
+			"Sum of Sales":9265
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Columbian",								
+			"region":"Central",
+			"Sum of Profit":8528,
+			"Sum of Sales":28913
+		},	
+		{
+			"category":"Coffee",
+			"sub_category":"Columbian",									
+			"region":"East",
+			"Sum of Profit":27253,
+			"Sum of Sales":47386
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Columbian",									
+			"region":"South",
+			"Sum of Profit":8767,
+			"Sum of Sales":21664
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Columbian",									
+			"region":"West",
+			"Sum of Profit":11253,
+			"Sum of Sales":30357
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Decaf Irish Cream",									
+			"region":"Central",
+			"Sum of Profit":9632,
+			"Sum of Sales":26155
+		},	
+		{
+			"category":"Coffee",
+			"sub_category":"Decaf Irish Cream",								
+			"region":"East",
+			"Sum of Profit":2727,
+			"Sum of Sales":6261
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Decaf Irish Cream",								
+			"region":"South",
+			"Sum of Profit":2933,
+			"Sum of Sales":11592
+		},
+		{
+			"category":"Coffee",
+			"sub_category":"Decaf Irish Cream",								
+			"region":"West",
+			"Sum of Profit":-1305,
+			"Sum of Sales":18235
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Latte",							
+			"region":"South",
+			"Sum of Profit":3872,
+			"Sum of Sales":15442
+		},						
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Latte",							
+			"region":"West",
+			"Sum of Profit":7502,
+			"Sum of Sales":20458
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Mocha",							
+			"region":"Central",
+			"Sum of Profit":14640,
+			"Sum of Sales":36570
+		},	
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Mocha",								
+			"region":"East",
+			"Sum of Profit":-6230,
+			"Sum of Sales":16646
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Mocha",								
+			"region":"South",
+			"Sum of Profit":5201,
+			"Sum of Sales":14163
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Caffe Mocha",								
+			"region":"West",
+			"Sum of Profit":4064,
+			"Sum of Sales":18876
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Decaf Espresso",							
+			"region":"Central",
+			"Sum of Profit":8860,
+			"Sum of Sales":24485
+		},	
+		{
+			"category":"Espresso",
+			"sub_category":"Decaf Espresso",							
+			"region":"East",
+			"Sum of Profit":2410,
+			"Sum of Sales":7722
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Decaf Espresso",							
+			"region":"South",
+			"Sum of Profit":5930,
+			"Sum of Sales":15384
+		},
+		{
+			"category":"Espresso",
+			"sub_category":"Decaf Espresso",							
+			"region":"West",
+			"Sum of Profit":12302,
+			"Sum of Sales":30578
+		},				
+		{
+			"category":"Espresso",
+			"sub_category":"Regular Espresso",							
+			"region":"East",
+			"Sum of Profit":10062,
+			"Sum of Sales":24036
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Chamomile",							
+			"region":"Central",
+			"Sum of Profit":14434,
+			"Sum of Sales":36570
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Chamomile",								
+			"region":"East",
+			"Sum of Profit":765,
+			"Sum of Sales":2194
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Chamomile",								
+			"region":"South",
+			"Sum of Profit":3180,
+			"Sum of Sales":11186
+		},						
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Chamomile",								
+			"region":"West",
+			"Sum of Profit":8852,
+			"Sum of Sales":25632
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Lemon",								
+			"region":"Central",
+			"Sum of Profit":6251,
+			"Sum of Sales":21978
+		},	
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Lemon",								
+			"region":"East",
+			"Sum of Profit":7901,
+			"Sum of Sales":27176
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Lemon",								
+			"region":"South",
+			"Sum of Profit":2593,
+			"Sum of Sales":14497
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Lemon",								
+			"region":"West",
+			"Sum of Profit":13120,
+			"Sum of Sales":32274
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Mint",								
+			"region":"Central",
+			"Sum of Profit":4069,
+			"Sum of Sales":9337
+		},	
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Mint",									
+			"region":"East",
+			"Sum of Profit":-2242,
+			"Sum of Sales":11992
+		},
+		{
+			"category":"Herbal Tea",
+			"sub_category":"Mint",									
+			"region":"West",
+			"Sum of Profit":4330,
+			"Sum of Sales":14380
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Darjeeling",									
+			"region":"Central",
+			"Sum of Profit":10772,
+			"Sum of Sales":30289
+		},	
+		{
+			"category":"Tea",
+			"sub_category":"Darjeeling",								
+			"region":"East",
+			"Sum of Profit":6497,
+			"Sum of Sales":14096
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Darjeeling",								
+			"region":"West",
+			"Sum of Profit":11780,
+			"Sum of Sales":28769
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Earl Grey",								
+			"region":"Central",
+			"Sum of Profit":10331,
+			"Sum of Sales":32881
+		},	
+		{
+			"category":"Tea",
+			"sub_category":"Earl Grey",								
+			"region":"East",
+			"Sum of Profit":6497,
+			"Sum of Sales":14096
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Earl Grey",								
+			"region":"West",
+			"Sum of Profit":10425,
+			"Sum of Sales":27387
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Green Tea",								
+			"region":"Central",
+			"Sum of Profit":1227,
+			"Sum of Sales":5211
+		},	
+		{
+			"category":"Tea",
+			"sub_category":"Green Tea",								
+			"region":"East",
+			"Sum of Profit":5654,
+			"Sum of Sales":11571
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Green Tea",								
+			"region":"West",
+			"Sum of Profit":-7109,
+			"Sum of Sales":16063
+		}
+	]					
+}

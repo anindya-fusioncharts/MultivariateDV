@@ -1,7 +1,18 @@
 /*------axis start----------*/
 
 function Axis(drawComponents){
-	this.drawcomponents=drawComponents;
+	this.drawcomponents=drawComponents;	
+}
+
+function AlterX_ordinalAxis(parsedJSON,point1,point2,drawComponents){
+	this.parsedJSON=parsedJSON;
+	this.point1=point1;
+	this.point2=point2;
+	Axis.call(this,drawComponents);	
+}
+
+AlterX_ordinalAxis.prototype.axisLine=function(){
+
 }
 
 function YAxis(parsedJSON,drawComponents,iChart,tickPosDown){
@@ -42,7 +53,7 @@ YAxis.prototype.axisLine=function(tickList){
 	}			
 }	
 
-YAxis.prototype.yAxisTicksText=function(tickList){
+YAxis.prototype.yAxisTicksText=function(tickList,noDiv){
 	var y1;
 	var x1;
 	var y2;
@@ -69,48 +80,50 @@ YAxis.prototype.yAxisTicksText=function(tickList){
 		point1=this.drawcomponents.coordinate(x1,y1);
 		point2=this.drawcomponents.coordinate(x2,y2);	
 		
-		if( Math.abs(tickList[i])<1000){
-			point=this.drawcomponents.coordinate(-(this.drawcomponents.marginX-this.drawcomponents.paddingTextX-8),(y1-4));
-			if(tickList[tickList.length-1]<1)
-				fixedDecimal=tickList[tickList.length-1].toString().length-2;
-			else
-				fixedDecimal=2;
-			if(tickList[i]==0)
-				tickText='0';
-			else{
-				if(tickList[i]%1==0)
-					tickText=tickList[i].toString();
+		if(typeof tickList[i] == 'number'){	
+			if( Math.abs(tickList[i])<1000){
+				point=this.drawcomponents.coordinate(-(this.drawcomponents.marginX-this.drawcomponents.paddingTextX-8),(y1-4));
+				if(tickList[tickList.length-1]<1)
+					fixedDecimal=tickList[tickList.length-1].toString().length-2;
 				else
-					tickText=tickList[i].toFixed(fixedDecimal).toString();
-			}							
+					fixedDecimal=2;
+				if(tickList[i]==0)
+					tickText='0';
+				else{
+					if(tickList[i]%1==0)
+						tickText=tickList[i].toString();
+					else
+						tickText=tickList[i].toFixed(fixedDecimal).toString();
+				}							
+			}
+			if(Math.abs(tickList[i])>=1000 && Math.abs(tickList[i])<1000000){			
+				tickText=tickList[i]/1000 + "" +"K";			
+			}
+			if(Math.abs(tickList[i])>=1000000 && Math.abs(tickList[i])<1000000000){		
+				tickText=tickList[i]/1000000 + "" +"M";			
+			}
+			if(Math.abs(tickList[i])>=1000000000 && Math.abs(tickList[i])<1000000000000){		
+				tickText=tickList[i]/1000000000 + "" +"B";			
+			}
+			if(Math.abs(tickList[i])>=1000000000000){		
+				tickText=tickList[i]/1000000000000 + "" +"T";		
+			}	
 		}
-		if(Math.abs(tickList[i])>=1000 && Math.abs(tickList[i])<1000000){			
-			tickText=tickList[i]/1000 + "" +"K";			
-		}
-		if(Math.abs(tickList[i])>=1000000 && Math.abs(tickList[i])<1000000000){		
-			tickText=tickList[i]/1000000 + "" +"M";			
-		}
-		if(Math.abs(tickList[i])>=1000000000 && Math.abs(tickList[i])<1000000000000){		
-			tickText=tickList[i]/1000000000 + "" +"B";			
-		}
-		if(Math.abs(tickList[i])>=1000000000000){		
-			tickText=tickList[i]/1000000000000 + "" +"T";		
-		}	
+		if(noDiv== undefined){
+			point0=this.drawcomponents.coordinate(-1,y1);
+			point1=this.drawcomponents.coordinate(this.drawcomponents.width,y1);
+			point2=this.drawcomponents.coordinate(this.drawcomponents.width,yPrev);
+			point3=this.drawcomponents.coordinate(-1,yPrev);
 
-		point0=this.drawcomponents.coordinate(-1,y1);
-		point1=this.drawcomponents.coordinate(this.drawcomponents.width,y1);
-		point2=this.drawcomponents.coordinate(this.drawcomponents.width,yPrev);
-		point3=this.drawcomponents.coordinate(-1,yPrev);
-
-		points= point0.x+ ','+point0.y+' '+point1.x+','+point1.y+' '+point2.x+','+point2.y+' '+point3.x+','+point3.y+' '+point0.x+ ','+point0.y;
-		if(i!=0)
-			if(count%2==0)
-				this.drawcomponents.drawPolygon(points,"divDash1");		
-			else
-				this.drawcomponents.drawPolygon(points,"divDash2");				
-		count++;
-		yPrev=y1;
-
+			points= point0.x+ ','+point0.y+' '+point1.x+','+point1.y+' '+point2.x+','+point2.y+' '+point3.x+','+point3.y+' '+point0.x+ ','+point0.y;
+			if(i!=0)
+				if(count%2==0)
+					this.drawcomponents.drawPolygon(points,"divDash1");		
+				else
+					this.drawcomponents.drawPolygon(points,"divDash2");				
+			count++;
+			yPrev=y1;
+		}
 		point=this.drawcomponents.coordinate(-(this.drawcomponents.marginX-this.drawcomponents.paddingTextX-8),(y1-5));
 		yAxisTicks[i]=this.drawcomponents.drawText(point,".35em",tickText,"yAxisTickText");
 	}
@@ -176,62 +189,60 @@ XAxis.prototype.xAxisTicksText=function(chartCount,tickList,tickPosDown){
 	var dateMin=tickList[0];
 	var xDiff=tickList[tickList.length-1].getTime()-tickList[0].getTime();
 
-		if(tickPosDown){				
+	if(tickPosDown){				
 
-			if(noChartRow>0) {
+		if(noChartRow>0) {
 
-				for(var i=0; i<tickList.length; i++){
-					x1=this.drawcomponents.xShift(tickList[i].getTime(),tickList[0].getTime(),xDiff);
-					y1=(this.drawcomponents.height-this.drawcomponents.marginY-this.drawcomponents.topMarginY-8);
-					x2=x1;
-					y2=(this.drawcomponents.height-this.drawcomponents.marginY-this.drawcomponents.topMarginY);				
-					point=this.drawcomponents.coordinate((x1+2),(y1+this.drawcomponents.marginY+5));
-					
-					point1=this.drawcomponents.coordinate(x1,y1);
-					point2=this.drawcomponents.coordinate(x2,y2);
-					
-					this.drawcomponents.drawLine(point1,point2,"xAxis");
+			for(var i=0; i<tickList.length; i++){
+				x1=this.drawcomponents.xShift(tickList[i].getTime(),tickList[0].getTime(),xDiff);
+				y1=(this.drawcomponents.height-this.drawcomponents.marginY-this.drawcomponents.topMarginY-8);
+				x2=x1;
+				y2=(this.drawcomponents.height-this.drawcomponents.marginY-this.drawcomponents.topMarginY);				
+				point=this.drawcomponents.coordinate((x1+2),(y1+this.drawcomponents.marginY+5));
+				
+				point1=this.drawcomponents.coordinate(x1,y1);
+				point2=this.drawcomponents.coordinate(x2,y2);
+				
+				this.drawcomponents.drawLine(point1,point2,"xAxis");
 
-					if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[4];
-					if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[0];
-					if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2];
-					if(dateMax.getFullYear()!=dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2] + ","+tickList[i].toString().split(' ')[3][2]+''+tickList[i].toString().split(' ')[3][3];					
-					this.drawcomponents.drawText(point,".35em",xTickStr,"xAxisTickText1","270");					
-				}
-			noChartRow--;
+				if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[4];
+				if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[0];
+				if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2];
+				if(dateMax.getFullYear()!=dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2] + ","+tickList[i].toString().split(' ')[3][2]+''+tickList[i].toString().split(' ')[3][3];					
+				this.drawcomponents.drawText(point,".35em",xTickStr,"xAxisTickText1","270");					
 			}
-		}else{
-			if((this.parsedJSON.chart.yMap.length - chartCount)<noChartRow && (this.parsedJSON.chart.yMap.length - chartCount)>= 0){
-				for(var i=0; i<tickList.length; i++){
-					x1=this.drawcomponents.xShift(tickList[i].getTime(),tickList[0].getTime(),xDiff);
-					y1=-(this.drawcomponents.marginY-this.drawcomponents.marginY);
-					x2=x1;
-					y2=-(this.drawcomponents.marginY-this.drawcomponents.marginY+5);				
-					
-					point=this.drawcomponents.coordinate((x1+2),(y1-8));
-					
-					point1=this.drawcomponents.coordinate(x1,y1);
-					point2=this.drawcomponents.coordinate(x2,y2);
-					
-					this.drawcomponents.drawLine(point1,point2,"xAxis");
+		noChartRow--;
+		}
+	}else{
+		if((this.parsedJSON.chart.yMap.length - chartCount)<noChartRow && (this.parsedJSON.chart.yMap.length - chartCount)>= 0){
+			for(var i=0; i<tickList.length; i++){
+				x1=this.drawcomponents.xShift(tickList[i].getTime(),tickList[0].getTime(),xDiff);
+				y1=-(this.drawcomponents.marginY-this.drawcomponents.marginY);
+				x2=x1;
+				y2=-(this.drawcomponents.marginY-this.drawcomponents.marginY+5);				
+				
+				point=this.drawcomponents.coordinate((x1+2),(y1-8));
+				
+				point1=this.drawcomponents.coordinate(x1,y1);
+				point2=this.drawcomponents.coordinate(x2,y2);
+				
+				this.drawcomponents.drawLine(point1,point2,"xAxis");
 
-					if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[4];
-					if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[0];
-					if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2];
-					if(dateMax.getFullYear()!=dateMin.getFullYear())
-						xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2] + ","+tickList[i].toString().split(' ')[3][2]+''+tickList[i].toString().split(' ')[3][3];					
-					
-					this.drawcomponents.drawText(point,".35em",xTickStr,"xAxisTickText1","270");				
-				}
-
-					
+				if(xDiff<(1000*3600*24) && dateMax.getDate()==dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[4];
+				if(dateMax.getDate()!=dateMin.getDate() && dateMax.getMonth()==dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[0];
+				if(dateMax.getMonth()!=dateMin.getMonth() && dateMax.getFullYear()==dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2];
+				if(dateMax.getFullYear()!=dateMin.getFullYear())
+					xTickStr=tickList[i].toString().split(' ')[1]+ "'"+tickList[i].toString().split(' ')[2] + ","+tickList[i].toString().split(' ')[3][2]+''+tickList[i].toString().split(' ')[3][3];					
+				
+				this.drawcomponents.drawText(point,".35em",xTickStr,"xAxisTickText1","270");				
+			}					
 		}
 	}	
 }

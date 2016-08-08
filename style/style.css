@@ -122,7 +122,10 @@
 }
 
 .chart{
-	background: #ffffff;
+	background: #ffffff;	
+	padding-top:0;
+	position: relative;  
+	float: left;	
 	-webkit-user-select: none !important;
 }
 
@@ -147,6 +150,40 @@
 
 
 .chartArea{
-	stroke:#black !important; 
+	stroke:transparent !important; 
 	fill:transparent !important;
+}
+.headerline,.sectionline,.footerline{
+	stroke:black; 
+	stroke-width:1;
+	shape-rendering:crispEdges;
+}
+.headerText,.yaxisticksText{
+	text-anchor:start;
+ 	font-family:"Verdana" !important;
+    font-size:15px !important;
+}
+.tab_titles{
+	text-anchor: middle!important;
+	font-size:15px;
+	font-family: "Verdana";
+}
+
+.categoryText{
+	text-anchor:start;
+ 	font-family:"Verdana" !important;
+    font-size:15px !important;
+}
+
+.HighlightedText{
+	text-anchor:start;
+ 	font-family:"Verdana" !important;
+    font-size:15px !important;
+    font-weight: bold;	
+}
+.title{
+	text-anchor: middle!important;
+	font-size:20px;
+	font-family: "Helvetica Neue",Arial !important;	
+	
 }

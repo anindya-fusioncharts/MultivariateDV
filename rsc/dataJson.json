@@ -4,7 +4,7 @@
          "subCaption": "FusionCharts Training Project 1",
          "height":300,
          "width":300,
-         "type":"line",
+         "type":"column",
          "xAxisMap":"date"
       },        
          "data":[

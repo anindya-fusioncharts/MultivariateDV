@@ -9,7 +9,7 @@ function Engine(rawJSON,selector){
 	this._tooltip=[];
 	this._columns=[];
 	this.selector=selector;
-	this.parsedJSON=parseJSON(rawJSON);
+	this.parsedJSON=parseJSON(rawJSON,selector);	
 }
 Engine.prototype.render=function(){
 		if(this.parsedJSON.chart.type=='line'){
@@ -19,6 +19,10 @@ Engine.prototype.render=function(){
 		if(this.parsedJSON.chart.type=='column'){
 			this.columnChart();
 		}
+		if(this.parsedJSON.chart.type=='crosstab'){
+			this.crossTab();
+		}
+		
 }
 
 Engine.prototype.lineChart=function(){
@@ -90,8 +94,6 @@ Engine.prototype.columnChart=function(){
 	var point0={};
 	var count=0;
 	var _this=this;
-
-
 	
 	if(typeof this.customSort == "function"){
 		this.customSort();
@@ -148,6 +150,35 @@ Engine.prototype.crossHairHandler=function(){
 		this._crossHair[i]._chartArea.addEventListener("mouserollover",syncCrossHair.bind(_this));		
 		this._crossHair[i]._chartArea.addEventListener("mouseout",hideCrossHair);		
 	}	
+}
+
+Engine.prototype.crossTab=function(){
+	var n=0,m=0;
+	var heightPerRow=30,heightHeader=30,heightFooter=70;
+	var marginX;
+	this._drawComponentsCharts=[];
+	this.parsedJSON.ticks={};
+	this.parsedJSON.ticks.alterYaxis=crosstabYticks(this.parsedJSON.data);
+	this.parsedJSON.ticks.ordinalAlterXaxis=this.parsedJSON.chart.subCategoryList;	
+
+	this.widthScreen=window.innerWidth-60;
+	this.widthPerSubChart=Math.ceil(this.widthScreen/(this.parsedJSON.chart.tab_titlesList.length+1));
+	var crossTab=new CrossTab(this.parsedJSON);	
+	this._drawComponents[n]= new DrawComponents(this.selector,this.widthScreen,heightHeader,10,0,0,"noPercent");	
+	crossTab.header(this._drawComponents[n],this.widthPerSubChart);
+	n++;	
+	for(var i=0; i<this.parsedJSON.chart.categoryList.length; i++){		
+		this._drawComponents[n]= new DrawComponents(this.selector,this.widthPerSubChart,(heightPerRow*this.parsedJSON.chart.subCategoryList[i].length),10,0,0,"noPercent");
+		crossTab.category(this._drawComponents[n],this.parsedJSON.chart.categoryList[i],this.parsedJSON.chart.subCategoryList[i],heightPerRow);		
+		for(var j=0; j<this.parsedJSON.chart.tab_titlesList.length; j++){	
+			this._drawComponentsCharts[m]= new DrawComponents(this.selector,this.widthPerSubChart,(heightPerRow*this.parsedJSON.chart.subCategoryList[i].length),0,0,0,"noPercent");
+			crossTab.chartArea(this._drawComponentsCharts[m],heightPerRow,i,j);
+			m++;
+		}
+		n++;
+	}
+	this._drawComponents[n]= new DrawComponents(this.selector,this.widthScreen,heightFooter,10,0,0,"noPercent");	
+	crossTab.footer(this._drawComponents[n],this.widthPerSubChart);
 }
 
 /*--------Engine end-------------*/
