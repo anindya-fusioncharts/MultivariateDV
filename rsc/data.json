@@ -5,11 +5,10 @@
 		"tab_titles":"region",		
 		"category_name":"Product Type",
 		"sub_category_name":"Product",
-		"maxProfitColor":"#00000",
-		"minProfitColor":"#E0E0E0",
+		"maxProfitColor":"#006633",
+		"minProfitColor":"#ff6600",
 		"maxLossColor":"#B71C1C",
 		"minLossColor":"#E57373",
-		"numberOfColorVarient":4,
 		"numberprefix": "$"
 	},
 	"data":[
@@ -17,8 +16,8 @@
 			"category":"Coffee",
 			"sub_category":"Amaretto",
 			"region":"Central",
-			"Sum of Profit":5105,
-			"Sum of Sales":14011
+			"Sum of Profit":0.5105,
+			"Sum of Sales":0.14011
 		},	
 		{
 			"category":"Coffee",
@@ -299,6 +298,13 @@
 			"region":"East",
 			"Sum of Profit":5654,
 			"Sum of Sales":11571
+		},
+		{
+			"category":"Tea",
+			"sub_category":"Green Tea",								
+			"region":"South",
+			"Sum of Profit":104,
+			"Sum of Sales":27100
 		},
 		{
 			"category":"Tea",
