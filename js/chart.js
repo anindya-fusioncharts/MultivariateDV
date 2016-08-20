@@ -4,16 +4,17 @@ function Chart(drawComponents,parsedJSON){
 	this.parsedJSON=parsedJSON;
 }
 Chart.prototype.drawChartHeading=function(selector,parsedJSON) {
-	var chartHeadings=new DrawComponents(selector,window.innerWidth-200,50,parsedJSON.chart.marginX,parsedJSON.chart.marginY,0,"Heading");
+	var width=parsedJSON.chart.width*Math.ceil(window.innerWidth/((1+0.32)*parsedJSON.chart.width))-0.33*parsedJSON.chart.width;
+	var chartHeadings=new DrawComponents(selector,width,50,parsedJSON.chart.marginX,parsedJSON.chart.marginY,0,"Heading");
 	var point;
 	point={
-		x: chartHeadings.width- Math.floor(chartHeadings.width/2 -chartHeadings.marginX),
+		x: chartHeadings.width- Math.floor(chartHeadings.width*0.53),
 		y:50-30
 	};
 	chartHeadings.drawText(point,".35em",parsedJSON.chart.caption,"Caption");	
 
 	point={
-		x: chartHeadings.width- Math.floor(chartHeadings.width/2 -chartHeadings.marginX),
+		x: chartHeadings.width- Math.floor(chartHeadings.width*0.53),
 		y:50-10
 	};
 	chartHeadings.drawText(point,".35em",parsedJSON.chart.subCaption,"subCaption");	

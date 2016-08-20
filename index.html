@@ -1,35 +1,40 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>CrossTab</title>
-<link rel="stylesheet" type="text/css" href="style/style.css"/>
+    <title>CrossTab</title>
+    <link rel="stylesheet" type="text/css" href="style/style.css" />
 </head>
+
 <body>
-<script type="text/javascript" src="js/globalFunctions.js"></script>
-<script type="text/javascript" src="js/engine.js"></script>
-<script type="text/javascript" src="js/drawingComponents.js"></script>
-<script type="text/javascript" src="js/chart.js"></script>
-<script type="text/javascript" src="js/columnChart.js"></script>
-<script type="text/javascript" src="js/lineChart.js"></script>
-<script type="text/javascript" src="js/renderFunction.js"></script>
-<script type="text/javascript" src="js/tooltip.js"></script>
-<script type="text/javascript" src="js/crossTab.js"></script>
-<script type="text/javascript" src="js/axis.js"></script>
-
-
-
-
-<div id="chart"></div>
-<script type="text/javascript">
-   var xhttp = new XMLHttpRequest(),data;
-   xhttp.onreadystatechange = function() {
-      if (xhttp.readyState == 4 && xhttp.status == 200) {
-         data= JSON.parse(xhttp.responseText);
-         render(data,'chart');
-      }
-   };
-   xhttp.open("GET", "rsc/dataJson.json", true);
-   xhttp.send();
-</script>
+    <!-- build:js -->
+    <script type="text/javascript" src="js/globalFunctions.js"></script>
+    <script type="text/javascript" src="js/parse.js"></script>
+    <script type="text/javascript" src="js/engine.js"></script>
+    <script type="text/javascript" src="js/drawingComponents.js"></script>
+    <script type="text/javascript" src="js/chart.js"></script>
+    <script type="text/javascript" src="js/columnChart.js"></script>    
+    <script type="text/javascript" src="js/lineChart.js"></script>
+    <script type="text/javascript" src="js/renderFunction.js"></script>
+    <script type="text/javascript" src="js/tooltip.js"></script>
+    <script type="text/javascript" src="js/crossTab.js"></script>
+    <script type="text/javascript" src="js/axis.js"></script>
+    <script type="text/javascript" src="js/xaxis.js"></script>
+    <script type="text/javascript" src="js/yaxis.js"></script>
+    <!-- endbuild -->
+    <div id="chart"></div>
+    <script type="text/javascript">
+    var xhttp = new XMLHttpRequest(),
+        data;
+    xhttp.onreadystatechange = function() {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            data = JSON.parse(xhttp.responseText);
+            render(data, 'chart');
+        }
+    };
+    xhttp.open("GET", "rsc/trellis.json", true);
+    xhttp.send();
+    </script>
 </body>
+
 </html>

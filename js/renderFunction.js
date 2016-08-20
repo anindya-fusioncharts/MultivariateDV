@@ -1,7 +1,7 @@
 
 /*---------------render start--------------*/
 window.render=function(rawJSON,selector){
-	/*try {	*/
+/*	try {*/	
 		var chart= new Engine(rawJSON,selector);
 		
 		chart.customSort=function(){
